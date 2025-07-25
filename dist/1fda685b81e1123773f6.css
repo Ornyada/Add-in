@@ -5,8 +5,8 @@ a {
 }
 
 body {
-  background: radial-gradient(circle at top left, rgb(0, 0, 0), #ffffff);
-  color: #1f1f1f;
+  background: radial-gradient(circle at top left, rgb(62, 62, 82), #1e1e2f);
+  color: #e0e0e0;
   font-family: 'Segoe UI', sans-serif;
   margin: 0;
   padding: 0;
@@ -15,7 +15,7 @@ body {
 
 /* === Container === */
 .container {
-  background-color: #d5d5d5;
+  background-color: #2a2a3d;
   border-radius: 10px;
   padding: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -41,7 +41,7 @@ ul {
   padding: 0;
   margin: auto;
   list-style: none;
-  border: 1.5px solid #ffffff;
+  border: 1.5px solid #606086;
   border-radius: 4px;
   max-width: 300px;
   color: #ffffff;
@@ -50,17 +50,17 @@ ul {
 .mfh-list li {
   padding: 8px 12px;
   cursor: pointer;
-  border-bottom: 1px solid #ffffff;
+  border-bottom: 1px solid #606086;
 }
 
 .mfh-list li:hover {
-  background-color: #b0b0b0;
+  background-color: #606086;
   color: #ffffff;
 }
 
 .selected-file {
-  background-color: #d5d5d5;
-  color: #10e846;
+  background-color: #2a2a3d;
+  color: #01d22b;
 }
 
 /* === Welcome Section === */
@@ -116,12 +116,12 @@ ul {
 .ms-Button.ms-Button--hero .ms-Button-label {
   color: #ffffff;
   align-items: flex-end;
-  text-shadow: 0 0 10px #ffffff;
+  text-shadow: 0 0 5px #d7a9ff;
 }
 
 .ms-Button.ms-Button--hero:hover .ms-Button-label,
 .ms-Button.ms-Button--hero:focus .ms-Button-label {
-  color: #000000;
+  color: #ffffff;
   cursor: pointer;
 }
 
@@ -174,7 +174,7 @@ ul {
 /* === Console Output === */
 #customConsole,
 #consoleOutput {
-  background : radial-gradient(circle at top left, rgb(43, 42, 42), #cbc9c9);
+  background-color: #2a2a3d;
   color: #ffffff;
   font-family: monospace;
   padding: 10px;
@@ -210,7 +210,7 @@ ul {
 
 /* === Feature Box === */
 .feature-box {
-  background: radial-gradient(circle at top left, rgb(43, 42, 42), #cbc9c9);
+  background-color: #2a2a3d;
   border-radius: 10px;
   padding: 15px 20px;
   margin-bottom: 15px;
@@ -219,7 +219,7 @@ ul {
 
 /* === Checkbox Section === */
 .stages-checkbox {
-  background: radial-gradient(circle at top left, rgb(43, 42, 42), #cbc9c9);
+  background-color: #2a2a3d;
   padding: 20px;
   border-radius: 10px;
   width: fit-content;
@@ -230,7 +230,7 @@ ul {
 
 .stages-checkbox input[type="checkbox"] {
   margin-right: 10px;
-  accent-color: #de2dd4;
+  accent-color: #01d22b;
   cursor: pointer;
 }
 
