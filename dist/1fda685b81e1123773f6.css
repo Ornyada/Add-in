@@ -5,7 +5,7 @@ a {
 }
 
 body {
-  background: radial-gradient(circle at top left, rgb(62, 62, 82), #1e1e2f);
+  background: radial-gradient(circle at top left, rgb(97, 97, 141), #1e1e2f);
   color: #e0e0e0;
   font-family: 'Segoe UI', sans-serif;
   margin: 0;
@@ -272,3 +272,4 @@ ul {
 b {
   font-weight: bold;
 }
+
