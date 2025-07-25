@@ -1,3 +1,4 @@
+
 /* === Base Styles === */
 html,
 a {
@@ -5,8 +6,8 @@ a {
 }
 
 body {
-  background: radial-gradient(circle at top left, rgb(62, 62, 82), #1e1e2f);
-  color: #e0e0e0;
+  background: radial-gradient(circle at top left, rgb(62, 62, 82), #e1e1d0);
+  color: #1f1f1f;
   font-family: 'Segoe UI', sans-serif;
   margin: 0;
   padding: 0;
@@ -15,16 +16,14 @@ body {
 
 /* === Container === */
 .container {
-  background-color: #2a2a3d;
+  background-color: #d5d5d5;
   border-radius: 10px;
   padding: 20px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* === Headings === */
-h1,
-h2,
-h3 {
+h1, h2, h3 {
   color: #ffffff;
   margin-bottom: 10px;
 }
@@ -41,7 +40,7 @@ ul {
   padding: 0;
   margin: auto;
   list-style: none;
-  border: 1.5px solid #606086;
+  border: 1.5px solid #9f9f79;
   border-radius: 4px;
   max-width: 300px;
   color: #ffffff;
@@ -50,28 +49,28 @@ ul {
 .mfh-list li {
   padding: 8px 12px;
   cursor: pointer;
-  border-bottom: 1px solid #606086;
+  border-bottom: 1px solid #9f9f79;
 }
 
 .mfh-list li:hover {
-  background-color: #606086;
+  background-color: #9f9f79;
   color: #ffffff;
 }
 
 .selected-file {
-  background-color: #2a2a3d;
-  color: #01d22b;
+  background-color: #d5d5d5;
+  color: #de2dd4;
 }
 
 /* === Welcome Section === */
 .ms-welcome__header {
   background: rgba(255, 255, 255, 0.08);
-  border-radius: 12px;
-  padding: 20px;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 20px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
 }
 
 .ms-welcome__main {
@@ -83,7 +82,7 @@ ul {
   color: #ffffff;
 }
 
-.ms-welcome__main>h2 {
+.ms-welcome__main > h2 {
   width: 100%;
   text-align: left;
   color: #ffffff;
@@ -104,7 +103,7 @@ ul {
   color: #ffffff;
 }
 
-.ms-welcome__features.ms-List .ms-ListItem>.ms-Icon {
+.ms-welcome__features.ms-List .ms-ListItem > .ms-Icon {
   margin-right: 10px;
 }
 
@@ -116,12 +115,12 @@ ul {
 .ms-Button.ms-Button--hero .ms-Button-label {
   color: #ffffff;
   align-items: flex-end;
-  text-shadow: 0 0 5px #d7a9ff;
+  text-shadow: 0 0 10px #9edc00;
 }
 
 .ms-Button.ms-Button--hero:hover .ms-Button-label,
 .ms-Button.ms-Button--hero:focus .ms-Button-label {
-  color: #ffffff;
+  color: #8b5f00;
   cursor: pointer;
 }
 
@@ -152,7 +151,7 @@ ul {
 .compare-button:hover,
 .compare-button:focus {
   background-color: #ffffff;
-  color: #000000;
+  color: #ffffff;
   box-shadow: 0 0 20px #ffffff;
 }
 
@@ -174,7 +173,7 @@ ul {
 /* === Console Output === */
 #customConsole,
 #consoleOutput {
-  background-color: #2a2a3d;
+  background-color: #d5d5d5;
   color: #ffffff;
   font-family: monospace;
   padding: 10px;
@@ -199,7 +198,7 @@ ul {
   flex: 1;
 }
 
-.feature-row>div {
+.feature-row > div {
   flex-shrink: 0;
 }
 
@@ -210,7 +209,7 @@ ul {
 
 /* === Feature Box === */
 .feature-box {
-  background-color: #2a2a3d;
+  background-color: #d5d5d5;
   border-radius: 10px;
   padding: 15px 20px;
   margin-bottom: 15px;
@@ -219,7 +218,7 @@ ul {
 
 /* === Checkbox Section === */
 .stages-checkbox {
-  background-color: #2a2a3d;
+  background-color: #d5d5d5;
   padding: 20px;
   border-radius: 10px;
   width: fit-content;
@@ -230,7 +229,7 @@ ul {
 
 .stages-checkbox input[type="checkbox"] {
   margin-right: 10px;
-  accent-color: #01d22b;
+  accent-color: #de2dd4;
   cursor: pointer;
 }
 
@@ -239,7 +238,7 @@ ul {
   cursor: pointer;
 }
 
-.stages-checkbox form>* {
+.stages-checkbox form > * {
   margin-bottom: 10px;
   display: flex;
   flex-direction: column;
