@@ -167,9 +167,79 @@ ul {
 #importFolderBtn,
 #fileInput,
 #importDatalogBtn {
+  
+background-color: #3a3a5c;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  padding: 10px 20px;
+  border-radius: 8px;
   font-size: 16px;
+  font-weight: bold;
+  text-shadow: 0 0 5px #d7a9ff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease-in-out;
+
+}
+
+#importDatalogBtn:hover,
+#importDatalogBtn:focus {
+  background-color: #ffffff;
+  color: #1e1e2f;
+  box-shadow: 0 0 20px #ffffff;
   cursor: pointer;
 }
+
+#importFolderBtn:hover,
+#importFolderBtn:focus {
+  background-color: #ffffff;
+  color: #1e1e2f;
+  box-shadow: 0 0 20px #ffffff;
+  cursor: pointer;
+}
+.custom-file-upload {
+  display: inline-block;
+  padding: 10px 20px;
+  cursor: pointer;
+  background-color: #3a3a5c;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  text-shadow: 0 0 5px #d7a9ff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease-in-out;
+}
+
+.custom-file-upload:hover,
+.custom-folder-upload:focus {
+  background-color: #ffffff;
+  color: #1e1e2f;
+  box-shadow: 0 0 20px #ffffff;
+}
+.custom-folder-upload {
+  display: inline-block;
+  padding: 10px 20px;
+  cursor: pointer;
+  background-color: #3a3a5c;
+  color: #ffffff;
+  border: 2px solid #ffffff;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: bold;
+  text-shadow: 0 0 5px #d7a9ff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  transition: all 0.3s ease-in-out;
+}
+
+.custom-folder-upload:hover,
+.custom-folder-upload:focus {
+  background-color: #ffffff;
+  color: #1e1e2f;
+  box-shadow: 0 0 20px #ffffff;
+}
+
+
 
 /* === Console Output === */
 #customConsole,
