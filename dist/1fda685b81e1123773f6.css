@@ -323,7 +323,17 @@ ul {
   transition: all 0.3s ease-in-out;
   
 }
-
+.file-info {
+    margin-left: 10px;
+    font-family: 'Segoe UI', sans-serif;
+    font-size: 15px;
+    vertical-align: middle;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+    display: inline-block;
+  }
 .custom-file-upload:hover,
 .custom-folder-upload:hover,
 .custom-folder-upload:focus {
