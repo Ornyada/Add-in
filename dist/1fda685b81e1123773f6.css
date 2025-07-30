@@ -5,7 +5,7 @@
   --secondary-bg: #2a2a3d;
   --accent-color: #ffffff;
   --text-color: #e0e0e0;
-  --highlight: #069122;
+  --highlight: #7edc91;
   --glass-bg: rgba(255, 255, 255, 0.05);
   --glass-border: rgba(255, 255, 255, 0.15);
 }
@@ -111,7 +111,7 @@ ul {
 }
 
 .selected-file {
-  background-color: #2bd628;
+  background-color: #6cd56a;
   color: var(--highlight);
 }
 
@@ -136,6 +136,7 @@ ul {
   display: inline-block;
   vertical-align: middle;
   text-align: left;
+  
 }
 
 /* === Welcome Section === */
@@ -233,6 +234,10 @@ ul {
    transform: translateY(-3px); /*move up*/
   transition: transform 0.2s ease, box-shadow 0.2s ease
 }
+.select-header{
+  text-align: center;
+  font-size: 16px;
+}
 .compare-button {
   border: 2px solid var(--accent-color);
   padding: 10px 20px;
@@ -316,7 +321,7 @@ ul {
   text-shadow: 0 0 5px #ffffff;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   transition: all 0.3s ease-in-out;
-
+  
 }
 
 .custom-file-upload:hover,
@@ -328,38 +333,58 @@ ul {
 /* === Console Output === */
 #customConsole::before,
 #consoleOutput::before {
-  content: "";
   position: absolute;
-  top: 36px;
-  left: 0;
-  right: 0;
-  bottom: 0px;
-  border: 2px solid #ffffff;
-  pointer-events: none;
+  font-family: monospace;
+  padding: 55px 15px 0px 15px; 
+  border-radius: 20px;
+  overflow-y: hidden;
+  font-size: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
   z-index: -1;
-  background-color:#ffffff;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  pointer-events: none; 
+  background-color: rgb(35 35 35);
+  
 }
-
 
 #customConsole,
 #consoleOutput {
-  background-image: url("data:image/svg+xml;utf8,<svg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'><polygon points='50,0 100,25 100,75 50,100 0,75 0,25' fill='rgba(255,255,255,0.05)'/></svg>");
-  background-size: 60px 65px;
-  position: relative; /*for use ::before*/
-  color: #191921;
-  font-family: monospace;
-  padding: 15px;
-  border-radius: 20px;
-  overflow-y: auto;
-  font-size: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
+  content: "";
+  position: relative;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+  background-color: #ffffff;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   z-index: 1;
-  background-color: rgb(35 35 35);
+  border-radius: 20px;
+  max-height: 300px;
+  overflow-y:auto;
+  color: #191921;
+  text-indent: 16px;
+  line-height: 1.6; 
+  font-size: 16px;
+  padding-bottom: 10px;
 }
+
+
 #console-head{
-  color: #ffffff;
+  
+  background-image: url("data:image/svg+xml;utf8,<svg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'><polygon points='50,0 100,25 100,75 50,100 0,75 0,25' fill='rgba(255,255,255,0.05)'/></svg>");
+  background-size: 50px 80px;
+  position: sticky;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: rgb(35 35 35);
+  color: white;
+  font-weight: bold;
+  padding: 10px 15px;
+  z-index: 2;
+  box-sizing: border-box;
+  margin-bottom : 0;         /* ✅ ลบ margin ด้านบน */
+  border-top-left-radius: 20px;
+  border-top-right-radius: 20px;
+
 }
 #customConsole,
 #consoleOutput:hover {
@@ -375,8 +400,8 @@ ul {
 }
 
 .feature-box {
-
-background: var(--glass-bg);
+  
+  background: var(--glass-bg);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid var(--glass-border);
