@@ -54,6 +54,28 @@
         <div class="folder-upload-container">
           <label for="folderInput" class="custom-folder-upload">+</label>
           <input type="file" id="folderInput" webkitdirectory multiple style="display: none;" />
+          
+            <span id="fileInfo" class="file-info" title=""></span>
+            
+            <script>
+              const folderInput = document.getElementById('folderInput');
+              const fileInfo = document.getElementById('fileInfo');
+            
+              folderInput.addEventListener('change', () => {
+                const files = Array.from(folderInput.files);
+                if (files.length === 1) {
+                  fileInfo.textContent = files[0].name;
+                  fileInfo.title = files[0].name;
+                } else if (files.length > 1) {
+                  fileInfo.textContent = `${files.length} files selected`;
+                  fileInfo.title = files.map(file => file.name).join('\n');
+                } else {
+                  fileInfo.textContent = '';
+                  fileInfo.title = '';
+                }
+              });
+            </script>
+
           <button type="button" id="importFolderBtn">IMPORT</button>
         </div>
       </div>
