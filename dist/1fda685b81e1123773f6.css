@@ -127,8 +127,9 @@ ul {
   color: #191921;
   text-align: center;
   font-weight: bold;
-  margin-right: 10px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  margin-right: 5px;
+  flex-shrink: 0; /*prevent shrinking*/
 }
 
 /* === Align ms-font-m text === */
@@ -294,7 +295,6 @@ ul {
   text-shadow: 0 0 5px #ffffff;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
   transition: all 0.3s ease-in-out;
-  margin-left: 10px
 }
 
 #importDatalogBtn:hover,
@@ -324,7 +324,7 @@ ul {
   
 }
 .file-info {
-    margin-left: 10px;
+    margin: 10px;
     font-family: 'Segoe UI', sans-serif;
     font-size: 15px;
     vertical-align: middle;
