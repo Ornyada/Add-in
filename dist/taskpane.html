@@ -55,23 +55,22 @@
           <label for="folderInput" class="custom-folder-upload">+</label>
           <input type="file" id="folderInput" webkitdirectory multiple style="display: none;" />
           
-            <span id="fileInfo" class="file-info" title=""></span>
-            
+            <span id="folderInfo" class="file-info" title=""></span>
             <script>
               const folderInput = document.getElementById('folderInput');
-              const fileInfo = document.getElementById('fileInfo');
+              const folderInfo = document.getElementById('folderInfo');
             
               folderInput.addEventListener('change', () => {
                 const files = Array.from(folderInput.files);
                 if (files.length === 1) {
-                  fileInfo.textContent = files[0].name;
-                  fileInfo.title = files[0].name;
+                  folderInfo.textContent = files[0].name;
+                  folderInfo.title = files[0].name;
                 } else if (files.length > 1) {
-                  fileInfo.textContent = `${files.length} files selected`;
-                  fileInfo.title = files.map(file => file.name).join('\n');
+                  folderInfo.textContent = `${files.length} files selected`;
+                  folderInfo.title = files.map(file => file.name).join('\n');
                 } else {
-                  fileInfo.textContent = '';
-                  fileInfo.title = '';
+                  folderInfo.textContent = '';
+                  folderInfo.title = '';
                 }
               });
             </script>
@@ -101,6 +100,26 @@
         <div class="file-upload-container">
           <label for="fileInput" class="custom-file-upload">+</label>
           <input type="file" id="fileInput" multiple style="display: none;"/>
+          <span id="fileInfo" class="file-info" title=""></span>
+            
+            <script>
+              const fileInput = document.getElementById('fileInput');
+              const fileInfo = document.getElementById('fileInfo');
+            
+              fileInput.addEventListener('change', () => {
+                const files = Array.from(fileInput.files);
+                if (files.length === 1) {
+                  fileInfo.textContent = files[0].name;
+                  fileInfo.title = files[0].name;
+                } else if (files.length > 1) {
+                  fileInfo.textContent = `${files.length} files selected`;
+                  fileInfo.title = files.map(file => file.name).join('\n');
+                } else {
+                  fileInfo.textContent = '';
+                  fileInfo.title = '';
+                }
+              });
+            </script>
           <button type="button" id="importDatalogBtn">IMPORT</button>
         </div>
       </div>
