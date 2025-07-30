@@ -5,7 +5,7 @@
   --secondary-bg: #2a2a3d;
   --accent-color: #ffffff;
   --text-color: #e0e0e0;
-  --highlight: #01d22b;
+  --highlight: #069122;
   --glass-bg: rgba(255, 255, 255, 0.05);
   --glass-border: rgba(255, 255, 255, 0.15);
 }
@@ -89,6 +89,9 @@ ul {
   color: #191921;
   justify-content: flex-end; /*always on the right*/
   flex:1;
+  max-height: 150px;
+  max-width : 400px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .mfh-list li {
@@ -103,9 +106,8 @@ ul {
   color:#191921;
 }
 .mfh-list li:hover {
-  background-color: #ffffff;
+  background-color: #dddbdb;
   color: rgb(0 0 0);
-  transform: scale(1.02);
 }
 
 .selected-file {
@@ -328,12 +330,11 @@ ul {
 #consoleOutput::before {
   content: "";
   position: absolute;
-  top: 10px;
-  left: 10px;
-  right: 10px;
-  bottom: 10px;
+  top: 36px;
+  left: 0;
+  right: 0;
+  bottom: 0px;
   border: 2px solid #ffffff;
-  border-radius: 5px;
   pointer-events: none;
   z-index: -1;
   background-color:#ffffff;
@@ -350,15 +351,16 @@ ul {
   color: #191921;
   font-family: monospace;
   padding: 15px;
-  border-radius: 5px;
-  max-height: 300px;
+  border-radius: 20px;
   overflow-y: auto;
   font-size: 16px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
   z-index: 1;
   background-color: rgb(35 35 35);
 }
-
+#console-head{
+  color: #ffffff;
+}
 #customConsole,
 #consoleOutput:hover {
   transform: translateY(-3px); /*move up*/
@@ -431,8 +433,10 @@ background: var(--glass-bg);
 }
 
 .stages-checkbox label {
-  color: #ffffff;
+  margin-top : 5px;
+  color: #191921;
   cursor: pointer;
+  font-size : 16px;
 }
 
 #labelList {
