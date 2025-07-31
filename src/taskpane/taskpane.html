@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8" />
-  <!--<meta http-equiv="X-UA-Compatible" content="IE=Edge" /> หากคุณไม่ได้รองรับ IE หรือใช้ Edge/Chrome/Firefox เป็นหลัก คุณสามารถ ลบ meta tag นี้ออกได้เลย-->
+  <!--<meta http-equiv="X-UA-Compatible" content="IE=Edge" /> -->
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Contoso Task Pane Add-in</title>
 
@@ -21,17 +21,18 @@
       alt="NXP-logo.png" title="NXP-logo.png" />
     <h1 class="ms-font-su">WELCOME TO OYD LIMIT TOOL</h1>
     <h2 class="ms-font-xl">Developed by Ornyada Charunyanont</h2>
+
   </header>
   <!--Ping to api-->
   <script>
-      setInterval(() => {
-        try {
+    setInterval(() => {
+      try {
         fetch("https://limit-project-demo.onrender.com/docs"); // to prevent cold start problem of render       
-          console.log("ping to api succeeded at", new Date().toLocaleString());
-        } catch (err) {
-          console.log("can't ping to api");
-        }
-      }, 10 * 60 * 1000);
+        console.log("ping to api succeeded at", new Date().toLocaleString());
+      } catch (err) {
+        console.log("can't ping to api");
+      }
+    }, 10 * 60 * 1000);
   </script>
 
   <section id="sideload-msg" class="ms-welcome__main">
@@ -42,7 +43,10 @@
     </h2>
   </section>
   <main id="app-body" class="ms-welcome__main">
-
+    <div class="API-pane">
+      <h3 class="fast-api">Please open <a target="_blank" rel="noopener noreferrer"
+          href="https://limit-project-demo.onrender.com/docs">API</a> before import files</h3>
+    </div>
     <!-- 1. Import testtable folder -->
     <div class="feature-box">
       <div class="feature-row">
@@ -51,7 +55,7 @@
         <div class="folder-upload-container">
           <label for="folderInput" class="custom-folder-upload">+</label>
           <input type="file" id="folderInput" webkitdirectory multiple style="display: none;" />
-    
+
           <span id="folderInfo" class="file-info" title=""></span>
           <script>
             const folderInput = document.getElementById('folderInput');
@@ -71,12 +75,12 @@
               }
             });
           </script>
-    
+
           <button type="button" id="importFolderBtn">IMPORT</button>
         </div>
       </div>
     </div>
-    
+
     <!-- 2. Choose .mfh file -->
     <div class="feature-box">
       <div class="feature-row">
@@ -88,7 +92,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- 3. Import datalog files -->
     <div class="feature-box">
       <div class="feature-row">
@@ -98,7 +102,7 @@
           <label for="fileInput" class="custom-file-upload">+</label>
           <input type="file" id="fileInput" multiple style="display: none;" />
           <span id="fileInfo" class="file-info" title=""></span>
-    
+
           <script>
             const fileInput = document.getElementById('fileInput');
             const fileInfo = document.getElementById('fileInfo');
@@ -121,7 +125,7 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Run button -->
     <div class="feature-box">
       <div class="feature-row">
@@ -131,7 +135,7 @@
         </div>
       </div>
     </div>
-    
+
     <div class="stages-compare">
       <!--stages checkbox-->
       <div class="stages-checkbox" id="checkboxForm">
@@ -148,37 +152,21 @@
         </div>
       </div>
     </div>
-    
+
     <p><label id="item-subject"></label></p>
     <div id="download-links"></div>
     <div id="consoleOutput">
       <div id="console-head">CONSOLE :</div>
     </div>
-    </main>
-    
-    
-    
-    <!-- ✅ โหลด office.js ก่อน -->
-    <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-    
-    <!-- ✅ โหลด SheetJS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
-    
-    <script src="taskpane.js"></script>
-    <!-- ✅ ตัวอย่างลิงก์ดาวน์โหลด 
-      <script>
-        const fileName = "example.txt";
-        const container = document.getElementById("download-links");
-        const link = document.createElement("a");
-        link.href = `https://127.0.0.1:8000/download/${fileName}`;
-        link.target = "_blank";
-        link.rel = "noopener";
-        link.textContent = "Download File";
-        container.appendChild(link);
-      </script>
-    </body>-->
-    
-    </body>
-    
-    </html>
+  </main>
+
+  <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
+
+  <script src="taskpane.js"></script>
+
+</body>
+
+</html>
