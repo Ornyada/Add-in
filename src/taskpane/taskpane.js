@@ -4,9 +4,6 @@ Office.onReady((info) => {
     document.getElementById("app-body").style.display = "flex";
     document.getElementById("run").onclick = run;
     //There is a button to create it manually because in case user want to re-create the Masterfile without importing new file
-
-    // ✅ ย้าย event listener สำหรับปุ่ม import มาไว้ที่นี่
-
     document.getElementById("importFolderBtn").addEventListener("click", async () => {
       const files = document.getElementById("folderInput").files;
       if (!files.length) {
@@ -46,81 +43,30 @@ Office.onReady((info) => {
 
       await checkboxHide(UncheckedNames, checkedNames);
     });
-    /*
-    // Compare button
-    compareButton.addEventListener("click", () => {
-      const selectedPairs = [];
-      document.querySelectorAll('input[name="stagePair"]:checked').forEach((cb) => {
-        selectedPairs.push(cb.value);
-      });
-      console.log("คู่ที่เลือก:", selectedPairs); // ตัวอย่าง: ซ่อนคอลัมน์ที่ไม่ได้ถูกเลือก
-      document.querySelectorAll(".stage-column").forEach((col) => {
-        if (!selectedPairs.includes(col.dataset.pair)) {
-          col.style.display = "none";
-        } else {
-          col.style.display = "";
-        }
-      });
-    });
-    */
   }
 });
-
+//convert stdf => xlsx
 export async function run() {
   try {
     document.body.style.cursor = "wait";
     await Excel.run(async (context) => {
       const sheets = context.workbook.worksheets;
       sheets.load("items/name");
-      await context.sync(); //wait to finish loading first
+      await context.sync();
       const baseName = "Masterfile";
       let sheetName = baseName;
       const existingNames = sheets.items.map((s) => s.name);
-      // ให้มีมาสเตอร์ไฟล์ ไฟล์เดียว
+      // check all sheets name
       if (existingNames.includes(sheetName)) {
         //I'll be back!!!!
       } else {
         const newSheet = sheets.add(sheetName);
-        // รายการหัวตาราง
         const headers = ["Suite name", "Test name", "Test number", "Lsl_typ", "Usl_typ", "Units"];
-        //ตรงนี้ต้องคำนึงถึงว่าจำนวน stage อาจจะไม่เท่ากัน ก็เดี๋ยวใช้ count นับสเตจที่แตกต่างกันรวมกับสเปคแล้วก็คูณสอง จากนั้นค่อยเขียนคอลัมน์ bin ต่อ
         const headerRange = newSheet.getRangeByIndexes(0, 0, 1, headers.length); //determine the range of cells to input headers , index เริ่มนับที่ 0
         headerRange.values = [headers]; //input headers into cells
         headerRange.format.fill.color = "#43a0ec"; // Background of headers
         headerRange.format.font.bold = true;
         const sheet = context.workbook.worksheets.getItem("Masterfile");
-        /*const allstages = [
-          "Spec",
-          "Spec",
-          "wh1",
-          "wh1",
-          "wr2",
-          "wr2",
-          "wr3",
-          "wr3",
-          "wc3",
-          "wc3",
-          "wh3",
-          "wh3",
-          "wi3",
-          "wi3",
-          "ww4",
-          "ww4",
-          "ww5",
-          "ww5",
-          "fr1",
-          "fr1",
-          "fr2",
-          "fr2",
-          "fc2",
-          "fc2",
-          "fh3",
-          "fh3",
-          "ar1",
-          "ar1",
-        ];
-        const allstagesRange = sheet.getRangeByIndexes(1, 6, 1, allstages.length);
-        allstagesRange.values = [allstages];*/
         sheet.position = 0;
         sheet.activate();
       }
@@ -128,162 +74,130 @@ export async function run() {
       document.body.style.cursor = "default";
     });
   } catch (error) {
-    console.error("เกิดข้อผิดพลาด:", error);
-    logToConsole("เกิดข้อผิดพลาด");
+    console.error("Error:", error);
+    logToConsole("Error");
   }
 }
 
-//*********
+//For importing datalog files
 async function importFile() {
   document.body.style.cursor = "wait";
+  const fileInput = document.getElementById("fileInput");
+  const files = fileInput.files;
+  const fileArray = Array.from(files);
+  if (!files || files.length === 0) return;
+  console.log("Amount of  file: %d", fileArray.length);
+  logToConsole("Amount of  file: %d", fileArray.length);
+  let file_processed = 0;
+  for (const file of fileArray) {
+    const isCSV = file.name.toLowerCase().endsWith(".csv");
+    const isXLSX = file.name.toLowerCase().endsWith(".xlsx");
+    const isSTDF = file.name.toLowerCase().endsWith(".stdf");
+    try {
+      if (isCSV || isXLSX) {
+        console.log("file CSV or XLSX is processing");
+        logToConsole("file CSV or XLSX is processing");
+        //seperate converted datalog and limit files
 
-  try {
-    const fileInput = document.getElementById("fileInput");
-    const files = fileInput.files;
-    const fileArray = Array.from(files);
-    if (!files || files.length === 0) return;
-    console.log("Amount of  file: %d", fileArray.length);
-    logToConsole("Amount of  file: %d", fileArray.length);
-    let file_processed = 0;
-    for (let i = 0; i < fileArray.length; i++) {
-      const file = fileArray[i];
-      const isCSV = file.name.toLowerCase().endsWith(".csv");
-      const isXLSX = file.name.toLowerCase().endsWith(".xlsx");
-      const isSTDF = file.name.toLowerCase().endsWith(".stdf");
-      try {
-        if (isCSV || isXLSX) {
-          console.log("file CSV or XLSX is processing");
-          logToConsole("file CSV or XLSX is processing");
-          //write file name in InputFiles Sheet
-          /*await Excel.run(async (context) => {
-            let sheets = context.workbook.worksheets;
-            sheets.load("items/name");
-            await context.sync();
-            let sheetName = "InputFiles";
-            let existingNames = sheets.items.map((s) => s.name);
-            let sheet;
-            if (existingNames.includes(sheetName)) {
-              sheet = sheets.getItem(sheetName);
-            } else {
-              sheet = sheets.add(sheetName);
-              const headers = ["File_Name"];
-              const headerRange = sheet.getRangeByIndexes(0, 0, 1, headers.length);
-              headerRange.values = [headers];
-              headerRange.format.fill.color = "#70d9ff";
-              headerRange.format.font.bold = true;
-              sheet.position = 0;
-            }
-            const usedRange = sheet.getUsedRange();
-            usedRange.load("rowCount");
-            await context.sync();
-            const nextRow = usedRange.rowCount;
-            const targetCell = sheet.getRangeByIndexes(nextRow, 0, 1, 1);
-            targetCell.values = [[fileContent.name]];
-            sheet.activate();
-            await context.sync();
-          });*/
-          //seperate converted datalog and limit files
-
-          const reader = new FileReader();
-          reader.onload = async function (e) {
-            const data = new Uint8Array(e.target.result);
-            const workbook = XLSX.read(data, { type: "array" });
-            const sheetCount = workbook.SheetNames.length;
-            if (sheetCount > 1) {
-              if (i === file_processed) {
-                file_processed = await uploadSelfConvertedDatalog(file, file_processed);
-                logToConsole("Processed file = %d", file_processed);
-              }
-            } else {
-              logToConsole("EY datalog is importing");
-              if (i === file_processed) {
-                file_processed = await uploadEYdatalog(file, file_processed);
-                logToConsole("Processed file = %d", file_processed);
-              }
-            }
-          };
-          reader.readAsArrayBuffer(file);
-          // แสดงชื่อไฟล์และ path ที่นำเข้า
-          const importedList = document.getElementById("importedFilesList");
-          if (importedList) {
-            const listItem = document.createElement("li");
-            listItem.textContent = `${file.name} - ${file.webkitRelativePath || file.name}`;
-            importedList.appendChild(listItem);
+        const reader = new FileReader();
+        reader.onload = async function (e) {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+          const sheetCount = workbook.SheetNames.length;
+          if (sheetCount > 1) {
+            file_processed = await uploadSelfConvertedDatalog(file, file_processed);
+            logToConsole("Processed file = %d", file_processed);
+          } else {
+            logToConsole("EY datalog is importing");
+            file_processed = await uploadEYdatalog(file, file_processed);
+            logToConsole("Processed file = %d", file_processed);
           }
-        } else if (isSTDF) {
-          console.log("File is STDF");
-          logToConsole("File is STDF");
-          const formData = new FormData();
-          if (!file) {
-            console.warn("ไม่มีไฟล์ที่เลือก");
-            return;
-          }
-          formData.append("files", file);
-          console.log(`กำลังประมวลผลไฟล์: ${file.name}`);
-          logToConsole(`กำลังประมวลผลไฟล์: ${file.name}`);
-          document.body.style.cursor = "wait";
-          /*const response = await fetch("https://127.0.0.1:8000/upload-stdf/", {
-            method: "POST",
-            body: formData,
-          });*/
-          const response = await fetch("https://limit-project-demo.onrender.com/upload-stdf/", {
-            method: "POST",
-            body: formData,
-          });
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error("STDF upload failed:", errorText);
-            logToConsole("STDF upload failed:", errorText);
-            return;
-          }
-
-          // รับไฟล์เป็น blob
-          const blob = await response.blob();
-          const downloadUrl = window.URL.createObjectURL(blob);
-
-          // ใช้ชื่อไฟล์ต้นฉบับจาก file.name แล้วเปลี่ยนนามสกุลเป็น .xlsx
-          const originalName = file.name.replace(/\.[^/.]+$/, ""); // ตัดนามสกุลเดิมออก
-          const downloadName = `${originalName}.xlsx`;
-
-          const a = document.createElement("a");
-          a.href = downloadUrl;
-          a.download = downloadName;
-          document.body.appendChild(a);
-          a.click();
-          a.remove();
-          window.URL.revokeObjectURL(downloadUrl);
-          logToConsole("STDF converted and downloaded successfully");
-
-          //แสดงลิงก์ดาวน์โหลดใน Task Pane
-          /*const container = document.getElementById("download-links");
-          container.innerHTML = ""; // ล้างของเก่า
-          result.converted_files.forEach((fileName) => {
-            const link = document.createElement("a");
-            link.href = `https://127.0.0.1:8000/download/${fileName}`; //Needs to change to cloud web as  a file storage
-            link.textContent = `ดาวน์โหลด: ${fileName}`;
-            link.target = "_blank";
-            container.appendChild(link);
-            container.appendChild(document.createElement("br"));
-          });*/
-        } else {
-          console.warn(`ไม่รองรับไฟล์ ${file.name}`);
-          logToConsole(`ไม่รองรับไฟล์ ${file.name}`);
+        };
+        reader.readAsArrayBuffer(file);
+        // display file name and path
+        const importedList = document.getElementById("importedFilesList");
+        if (importedList) {
+          const listItem = document.createElement("li");
+          listItem.textContent = `${file.name} - ${file.webkitRelativePath || file.name}`;
+          importedList.appendChild(listItem);
         }
-      } catch (err) {
-        console.error(`Error while processing file: ${file.name}`, err);
-        logToConsole(`Error while processing file: ${file.name}`);
-      } finally {
-        document.body.style.cursor = "default";
-      }
-    }
-    document.body.style.cursor = "default";
-  } catch (error) {
-    console.error(`Error while importing file: ${file.name}`, error);
-    logToConsole(`Error while importing file: ${file.name}`);
-    fileInput.value = ""; // ✅ reset แม้เกิด error
-  }
-}
+      } else if (isSTDF) {
+        console.log("File is STDF");
+        logToConsole("File is STDF");
+        const formData = new FormData();
+        if (!file) {
+          console.warn("No file");
+          return;
+        }
+        formData.append("files", file);
+        console.log(`Processing: ${file.name}`);
+        logToConsole(`Processing: ${file.name}`);
+        document.body.style.cursor = "wait";
+        const response = await fetch("https://limit-project-demo.onrender.com/upload-stdf/", {
+          method: "POST",
+          body: formData,
+        });
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error("STDF upload failed:", errorText);
+          logToConsole("STDF upload failed:", errorText);
+          return;
+        }
+        // import file as blob
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
 
+        // use orginal file.name and change end of file name to .xlsx
+        const originalName = file.name.replace(/\.[^/.]+$/, "");
+        const downloadName = `${originalName}.xlsx`;
+        const a = document.createElement("a");
+        a.href = downloadUrl;
+        a.download = downloadName;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(downloadUrl);
+        logToConsole("STDF converted and downloaded successfully");
+      } else {
+        console.warn(`Doesn't support ${file.name}`);
+        logToConsole(`Doesn't support ${file.name}`);
+      }
+    } catch (err) {
+      console.error(`Error while processing file: ${file.name}`, err);
+      logToConsole(`Error while processing file: ${file.name}`);
+    } finally {
+      //write file name in InputFiles Sheet
+      await Excel.run(async (context) => {
+        let sheets = context.workbook.worksheets;
+        sheets.load("items/name");
+        await context.sync();
+        let sheetName = "InputFiles";
+        let existingNames = sheets.items.map((s) => s.name);
+        let sheet;
+        if (existingNames.includes(sheetName)) {
+          sheet = sheets.getItem(sheetName);
+        } else {
+          sheet = sheets.add(sheetName);
+          const headers = ["File_Name"];
+          const headerRange = sheet.getRangeByIndexes(0, 0, 1, headers.length);
+          headerRange.values = [headers];
+          headerRange.format.fill.color = "#C6EFCE";
+          headerRange.format.font.bold = true;
+          sheet.position = 0;
+        }
+        const usedRange = sheet.getUsedRange();
+        usedRange.load("rowCount");
+        await context.sync();
+        const nextRow = usedRange.rowCount;
+        const targetCell = sheet.getRangeByIndexes(nextRow, 0, 1, 1);
+        targetCell.values = [[file.name]];
+        await context.sync();
+      });
+    }
+  }
+  document.body.style.cursor = "default";
+}
+//For processing datalog that is converted by this tool
 async function uploadSelfConvertedDatalog(file, file_processed) {
   document.body.style.cursor = "wait";
   return new Promise((resolve, reject) => {
@@ -299,7 +213,6 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
       Excel.run(async (context) => {
         const masterSheet = context.workbook.worksheets.getItem("Masterfile");
         let usedRange;
-
         usedRange = masterSheet.getUsedRange();
         usedRange.load(["rowCount", "columnCount"]);
         await context.sync();
@@ -312,11 +225,10 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
           const rowCount = Math.min(chunkSize, totalRows - startRow);
           const range = sheet.getRangeByIndexes(startRow, 0, rowCount, totalCols);
           range.load("values");
-          await context.sync(); // รวมข้อมูลเข้า allValues
+          await context.sync();
           allValues = allValues.concat(range.values);
         }
         let headers = allValues[0];
-        //let headers = usedRange.values[0];
         console.log("headers: ", headers);
 
         //Insert JOB_NAM as a Product Name
@@ -359,11 +271,9 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
           }
         }
 
-        // If there is no same product name then insert it in
+        // If there is no same product name then insert it
         if (productColIndex === -1) {
           const sheet = context.workbook.worksheets.getItem("Masterfile");
-          //check if product name start with  T or P if T then show F,A if P then show W
-          //if()
           const columnToInsert = sheet.getRange("F:F");
           columnToInsert.insert(Excel.InsertShiftDirection.right);
           const product_name_head = sheet.getRange("F1:F1");
@@ -385,7 +295,7 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
               Product_count++;
             }
           }
-          const colors = ["#C6EFCE", "#FFEB9C", "#FFC7CE", "#D9E1F2"];
+          const colors = ["#C6EFCE", "#FFEB9C", "#FFC7CE", "#e6cdfa"];
           const color = colors[Product_count % 4];
           product_name_head.format.fill.color = color;
           //add stage
@@ -398,8 +308,7 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
           await context.sync();
           const startCol = productColIndex;
           const stage_count = Allproduct_stage.filter((item) => item.name === productName).length; //how many stages does this product have
-          console.log("stage ของ product %s มีอยู่แล้วจำนวน %d", productName, stage_count);
-          logToConsole("stage ของ product %s มีอยู่แล้วจำนวน %d", productName, stage_count);
+          console.log("product : %s , stage count : %d stage", productName, stage_count);
           let columnToInsert = sheet.getRangeByIndexes(0, startCol + 1, 1, 1);
           columnToInsert.insert(Excel.InsertShiftDirection.right);
           usedRange = sheet.getUsedRange();
@@ -416,336 +325,298 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
           console.log("startcol for merge: %d stagecount for merge: %d", startCol, stage_count);
           logToConsole("startcol for merge: %d stagecount for merge: %d", startCol, stage_count);
           const range = sheet.getRangeByIndexes(0, startCol, 1, stage_count);
-          range.values = Array(1).fill(Array(stage_count).fill(productName)); // ใส่ค่า productName ลงในทุกเซลล์ของ range Array(stage_count).fill(productName) สร้างอาร์เรย์ย่อยที่มี productName ซ้ำกัน stage_count ครั้ง เช่น ["ABC", "ABC", "ABC"] Array(1).fill(...) ทำให้กลายเป็น array 2 มิติ (1 แถว n คอลัมน์) → ซึ่งตรงกับ .values ที่ต้องการ
+          range.values = Array(1).fill(Array(stage_count).fill(productName));
+          // fill productName in every cells of range Array(stage_count).fill(productName)
+          // create sub array that has duplicate (productName) for (stage_count) times ex. ["ABC", "ABC", "ABC"] Array(1).fill(...) => array 2 dim (1 row n cols) → match to expected .values
           range.merge();
           await context.sync();
         }
-        //Download new Usedrange after insert new cells
         usedRange = masterSheet.getUsedRange();
-        //usedRange.load("values");
         await context.sync();
         masterSheet.activate();
         console.log("Completely added product name and stage");
         logToConsole("Completely added product name and stage");
-        return (
-          /*fetch("https://127.0.0.1:8000/process-self-converted-datalog/", {
-            method: "POST",
-            body: formData,
-          })*/
-          fetch("https://limit-project-demo.onrender.com/process-self-converted-datalog/", {
-            method: "POST",
-            body: formData,
-          })
-            //https://limit-project-demo.onrender.com
-            .then((res) => res.json())
-            .then((data) => {
-              let TestData = data.test_data;
-              if (TestData !== null) {
-                logToConsole("process-datalog-excel fetched successfully");
+        return fetch("https://limit-project-demo.onrender.com/process-self-converted-datalog/", {
+          method: "POST",
+          body: formData,
+        })
+          .then((res) => res.json())
+          .then((data) => {
+            let TestData = data.test_data;
+            if (TestData !== null) {
+              logToConsole("process-datalog-excel fetched successfully");
+            }
+            Excel.run(async (context) => {
+              const sheet = context.workbook.worksheets.getItem("Masterfile");
+              let usedRange = sheet.getUsedRange();
+              usedRange.load(["rowCount", "columnCount"]);
+              await context.sync();
+
+              let chunkSize = 1000;
+              let totalRows = usedRange.rowCount;
+              let totalCols = usedRange.columnCount;
+              let allValues = [];
+              for (let startRow = 0; startRow < totalRows; startRow += chunkSize) {
+                const rowCount = Math.min(chunkSize, totalRows - startRow);
+                const range = sheet.getRangeByIndexes(startRow, 0, rowCount, totalCols);
+                range.load("values");
+                await context.sync();
+
+                allValues = allValues.concat(range.values);
               }
-              Excel.run(async (context) => {
-                const sheet = context.workbook.worksheets.getItem("Masterfile");
-                let usedRange = sheet.getUsedRange();
-                usedRange.load(["rowCount", "columnCount"]);
-                await context.sync();
+              let headers = allValues[0];
 
-                let chunkSize = 1000;
-                let totalRows = usedRange.rowCount;
-                let totalCols = usedRange.columnCount;
-                let allValues = [];
-                for (let startRow = 0; startRow < totalRows; startRow += chunkSize) {
-                  const rowCount = Math.min(chunkSize, totalRows - startRow);
-                  const range = sheet.getRangeByIndexes(startRow, 0, rowCount, totalCols);
-                  range.load("values");
-                  await context.sync(); // รวมข้อมูลเข้า allValues
+              let TestnumColIndex = headers.indexOf("Test number");
+              const SuiteColIndex = headers.indexOf("Suite name");
+              const TestColIndex = headers.indexOf("Test name");
+              if (TestnumColIndex === -1) {
+                console.error("Test number column is not found");
+                logToConsole("Test number is not found");
+                return;
+              }
+              if (SuiteColIndex === -1) {
+                console.error("Suite name is not found");
+                logToConsole("Suite name is not found");
+                return;
+              }
+              if (TestColIndex === -1) {
+                console.error("Test name is not found");
+                logToConsole("Test name is not found");
+                return;
+              }
 
-                  allValues = allValues.concat(range.values);
-                }
-                let headers = allValues[0];
-
-                let TestnumColIndex = headers.indexOf("Test number");
-                const SuiteColIndex = headers.indexOf("Suite name");
-                const TestColIndex = headers.indexOf("Test name");
-                if (TestnumColIndex === -1) {
-                  console.error("ไม่พบคอลัมน์ Test number");
-                  logToConsole("ไม่พบคอลัมน์ Test number");
-                  return;
-                }
-                if (SuiteColIndex === -1) {
-                  console.error("ไม่พบคอลัมน์ Suite name");
-                  logToConsole("ไม่พบคอลัมน์ Suite name");
-                  return;
-                }
-                if (TestColIndex === -1) {
-                  console.error("ไม่พบคอลัมน์ Test name");
-                  logToConsole("ไม่พบคอลัมน์ Test name");
-                  return;
-                }
-
-                const testNameRange = sheet.getRangeByIndexes(
-                  2,
-                  TestColIndex,
-                  allValues.length - 2,
-                  1
-                );
-                testNameRange.load("values");
-                await context.sync();
-                logToConsole("Determined Allcolindex and testNamerange");
-                let existingTestNames = [];
-                try {
-                  existingTestNames = testNameRange.values.flat().filter((v) => v !== "");
-                } catch (err) {
-                  console.error("เกิดปัญหาขณะอ่าน testNameRange.values:", err);
-                  logToConsole("เกิดปัญหาขณะอ่าน testNameRange.values: %s", err.message || err);
-                  return;
-                }
-                if (!Array.isArray(TestData)) {
-                  console.error("TestData ไม่ใช่ array หรือยังไม่ได้โหลด");
-                  logToConsole("TestData ไม่ใช่ array หรือยังไม่ได้โหลด");
-                  return;
-                }
-                let newTests = [];
-                try {
-                  newTests = TestData.filter((item) => !existingTestNames.includes(item.test_name));
-                } catch (err) {
-                  console.error("เกิดปัญหาขณะ TestData.filter", err);
-                  logToConsole("เกิดปัญหาขณะ TestData.filter: %s", err.message || err);
-                  return;
-                }
-                if (!Array.isArray(allValues)) {
-                  console.error("allValues ไม่ใช่ array");
-                  logToConsole("allValues ไม่ใช่ array");
-                  return;
-                }
-                let startRow = allValues.length;
-                let suiteRange, testRange;
-                let suiteValues = [];
-                let testValues = [];
-                try {
-                  if (newTests.length > 0) {
-                    const testNumbers = newTests.map((t) => [t?.test_number ?? ""]);
-                    logToConsole("newTests.length = %d", newTests.length);
-                    // เขียน test numbers
-                    if (TestnumColIndex === -1) {
-                      logToConsole("ไม่พบคอลัมน์ Test number ใน headers");
-                      return;
-                    }
-                    const writeRange = sheet.getRangeByIndexes(
-                      startRow,
-                      TestnumColIndex,
-                      newTests.length,
-                      1
-                    );
-                    writeRange.values = testNumbers;
-                    await context.sync();
-                    // เขียน suite name และ test name
-                    suiteRange = sheet.getRangeByIndexes(
-                      startRow,
-                      SuiteColIndex,
-                      newTests.length,
-                      1
-                    );
-                    testRange = sheet.getRangeByIndexes(startRow, TestColIndex, newTests.length, 1);
-                    suiteValues = newTests.map((t) => [t.suite_name]);
-                    testValues = newTests.map((t) => [t.test_name]);
-                    suiteRange.values = suiteValues;
-                    testRange.values = testValues;
-                    await context.sync();
-                  } else {
-                    logToConsole("There's no new tests");
+              const testNameRange = sheet.getRangeByIndexes(
+                2,
+                TestColIndex,
+                allValues.length - 2,
+                1
+              );
+              testNameRange.load("values");
+              await context.sync();
+              logToConsole("Determined Allcolindex and testNamerange");
+              let existingTestNames = [];
+              try {
+                existingTestNames = testNameRange.values.flat().filter((v) => v !== "");
+              } catch (err) {
+                console.error("Error while processing testNameRange.values:", err);
+                logToConsole("Error while processing testNameRange.values: %s", err.message || err);
+                return;
+              }
+              if (!Array.isArray(TestData)) {
+                console.error("TestData isn't an array or isn't downloaded");
+                logToConsole("TestData isn't an array or isn't downloaded");
+                return;
+              }
+              let newTests = [];
+              try {
+                newTests = TestData.filter((item) => !existingTestNames.includes(item.test_name));
+              } catch (err) {
+                console.error("Error while TestData.filter", err);
+                logToConsole("Error while TestData.filter: %s", err.message || err);
+                return;
+              }
+              if (!Array.isArray(allValues)) {
+                console.error("allValues isn't an array");
+                logToConsole("allValues isn't an array");
+                return;
+              }
+              let startRow = allValues.length;
+              let suiteRange, testRange;
+              let suiteValues = [];
+              let testValues = [];
+              try {
+                if (newTests.length > 0) {
+                  const testNumbers = newTests.map((t) => [t?.test_number ?? ""]);
+                  // fill test numbers
+                  if (TestnumColIndex === -1) {
+                    logToConsole("Can't find Test number column in header");
+                    return;
                   }
-                } catch (err) {
-                  console.error("เกิดปัญหาในช่วงสร้าง newTests:", err);
-                  logToConsole("เกิดปัญหาในช่วงสร้าง newTests: %s", err.message || err);
-                }
-                // อ่านไฟล์ Excel ที่อัปโหลดเพื่อดึงชื่อ product
-                const data = new Uint8Array(e.target.result);
-                const workbook = XLSX.read(data, { type: "array" });
-                const mirSheet = workbook.Sheets["mir"];
-                const mirData = XLSX.utils.sheet_to_json(mirSheet, { defval: "" });
-                const productName = mirData[0]?.["JOB_NAM"]?.trim();
-                let productColIndex = headers.indexOf(productName);
-                if (productColIndex === -1) {
-                  console.error("ไม่พบชื่อ product ใน header:", productName);
-                  logToConsole("ไม่พบชื่อ product ใน header:", productName);
-                  return;
-                }
-                Allproduct_stage.push({
-                  name: productName,
-                  stage: stagename,
-                });
-                let stage_count = Allproduct_stage.filter(
-                  (item) => item.name === productName
-                ).length;
-                let stage_array_index;
-                let stage_range = sheet.getRangeByIndexes(1, productColIndex, 1, stage_count);
-                stage_range.load("values");
-                await context.sync();
-                for (let i = 0; i <= stage_count; i++) {
-                  console.log("stage %d = %s", i, stage_range.values[0][i]);
-                  if (stage_range.values[0][i] === stagename) {
-                    stage_array_index = i;
-                    break;
-                  }
-                }
-
-                if (stage_array_index === undefined) {
-                  console.error("ไม่พบ stage name ใน column:", stagename);
-                  logToConsole("ไม่พบ stage name ใน column:", stagename);
-                }
-                console.log(
-                  "productColIndex: %d, stage_count: %d, stageArrayIndex: %d ",
-                  productColIndex,
-                  stage_count,
-                  stage_array_index
-                );
-                logToConsole(
-                  "productColIndex: %d, stage_count: %d, stageArrayIndex: %d ",
-                  productColIndex,
-                  stage_count,
-                  stage_array_index
-                );
-
-                usedRange = sheet.getUsedRange();
-                await context.sync();
-                /*usedRange.load("values");
-              await context.sync();*/
-                usedRange.load(["rowCount", "columnCount"]);
-                await context.sync();
-                totalRows = usedRange.rowCount;
-                totalCols = usedRange.columnCount;
-                allValues = [];
-                for (let startRow = 0; startRow < totalRows; startRow += chunkSize) {
-                  const rowCount = Math.min(chunkSize, totalRows - startRow);
-                  const range = sheet.getRangeByIndexes(startRow, 0, rowCount, totalCols);
-                  range.load("values");
-                  await context.sync(); // รวมข้อมูลเข้า allValues
-
-                  allValues = allValues.concat(range.values);
-                }
-                headers = allValues[0];
-
-                // ดึง test name ทั้งหมดใน Excel
-                const testNameRangeAll = sheet.getRangeByIndexes(
-                  2,
-                  TestColIndex,
-                  allValues.length - 2,
-                  1
-                );
-                testNameRangeAll.load("values");
-                await context.sync();
-                // สร้าง YNValues โดยแมปจาก test_name -> YN_check
-                const allTestNames = testNameRangeAll.values.map((row) => row[0]);
-                logToConsole("allTestNames length : %d", allTestNames.length);
-                let YNValues = [];
-                try {
-                  YNValues = allTestNames.map((testName) => {
-                    const match = TestData.find((item) => item.test_name === testName);
-                    return [match ? match.YN_check : ""];
-                  });
-                } catch (err) {
-                  console.error("เกิดปัญหาในช่วงสร้าง YNValues:", err);
-                  logToConsole("เกิดปัญหาในช่วงสร้าง YNValues: %s", err.message || err);
-                }
-                logToConsole("YNcolIndex : %d", productColIndex + stage_array_index);
-                let YNRange = sheet.getRangeByIndexes(
-                  2,
-                  productColIndex + stage_array_index,
-                  YNValues.length,
-                  1
-                );
-                YNRange.load("values");
-                await context.sync();
-
-                if (YNValues.length === 0) {
-                  console.warn("ไม่มีข้อมูล Y/N check ที่จะเขียน");
-                  logToConsole("ไม่มีข้อมูล Y/N check ที่จะเขียน");
+                  const writeRange = sheet.getRangeByIndexes(
+                    startRow,
+                    TestnumColIndex,
+                    newTests.length,
+                    1
+                  );
+                  writeRange.values = testNumbers;
+                  await context.sync();
+                  // fill suite name and test name
+                  suiteRange = sheet.getRangeByIndexes(startRow, SuiteColIndex, newTests.length, 1);
+                  testRange = sheet.getRangeByIndexes(startRow, TestColIndex, newTests.length, 1);
+                  suiteValues = newTests.map((t) => [t.suite_name]);
+                  testValues = newTests.map((t) => [t.test_name]);
+                  suiteRange.values = suiteValues;
+                  testRange.values = testValues;
+                  await context.sync();
                 } else {
-                  console.log("YN.length of %s %s is %d", productName, stagename, YNValues.length);
-                  logToConsole("YN.length of %s %s is %d", productName, stagename, YNValues.length);
+                  logToConsole("There's no new tests");
                 }
-                YNRange.values = YNValues;
-                await context.sync();
-                // loop for add green color and add N for null cell (not yet)
-                const IsUsedIndex = headers.indexOf("Is used (Y/N)");
-                let IsUsedDataRange = sheet.getRangeByIndexes(
-                  2,
-                  IsUsedIndex,
-                  YNRange.values.length,
-                  1
-                );
-                IsUsedDataRange.load("values");
-                await context.sync();
-                let IsUsedData = IsUsedDataRange.values;
-
-                // ถ้า IsUsedData ยังไม่มีข้อมูล ให้สร้าง array เปล่าขึ้นมา ไม่งั้นถ้ามันเป็นข้อมูล undefine มันจะ error
-                if (!Array.isArray(IsUsedData) || IsUsedData.length === 0) {
-                  IsUsedData = Array.from({ length: YNRange.values.length }, () => [""]);
+              } catch (err) {
+                console.error("Error while processing newTests:", err);
+              }
+              // read uploaded Excel to import product name
+              const data = new Uint8Array(e.target.result);
+              const workbook = XLSX.read(data, { type: "array" });
+              const mirSheet = workbook.Sheets["mir"];
+              const mirData = XLSX.utils.sheet_to_json(mirSheet, { defval: "" });
+              const productName = mirData[0]?.["JOB_NAM"]?.trim();
+              let productColIndex = headers.indexOf(productName);
+              if (productColIndex === -1) {
+                console.error("Can't find product name :", productName);
+                logToConsole("Can't find product name :", productName);
+                return;
+              }
+              Allproduct_stage.push({
+                name: productName,
+                stage: stagename,
+              });
+              let stage_count = Allproduct_stage.filter((item) => item.name === productName).length;
+              let stage_array_index;
+              let stage_range = sheet.getRangeByIndexes(1, productColIndex, 1, stage_count);
+              stage_range.load("values");
+              await context.sync();
+              for (let i = 0; i <= stage_count; i++) {
+                console.log("stage %d = %s", i, stage_range.values[0][i]);
+                if (stage_range.values[0][i] === stagename) {
+                  stage_array_index = i;
+                  break;
                 }
+              }
 
-                for (let i = 0; i < YNRange.values.length; i++) {
-                  if (YNRange.values[i][0] === "Y") {
-                    if (IsUsedData[i][0] === "Partial" || IsUsedData[i][0] === "No") {
-                      IsUsedData[i][0] = "Partial";
-                    }
-                    if (IsUsedData[i][0] === "No") {
-                      IsUsedData[i][0] = "Partial";
-                    } else IsUsedData[i][0] = "All";
-                  } else {
-                    if (IsUsedData[i][0] === "All" || IsUsedData[i][0] === "Partial") {
-                      IsUsedData[i][0] = "Partial";
-                    } else IsUsedData[i][0] = "No";
+              if (stage_array_index === undefined) {
+                console.error("Can't find stage name index :", stagename);
+                logToConsole("Can't find stage name index:", stagename);
+              }
+              console.log(
+                "productColIndex: %d, stage_count: %d, stageArrayIndex: %d ",
+                productColIndex,
+                stage_count,
+                stage_array_index
+              );
+              usedRange = sheet.getUsedRange();
+              await context.sync();
+              usedRange.load(["rowCount", "columnCount"]);
+              await context.sync();
+              totalRows = usedRange.rowCount;
+              totalCols = usedRange.columnCount;
+              allValues = [];
+              for (let startRow = 0; startRow < totalRows; startRow += chunkSize) {
+                const rowCount = Math.min(chunkSize, totalRows - startRow);
+                const range = sheet.getRangeByIndexes(startRow, 0, rowCount, totalCols);
+                range.load("values");
+                await context.sync();
+                allValues = allValues.concat(range.values);
+              }
+              headers = allValues[0];
+              const testNameRangeAll = sheet.getRangeByIndexes(
+                2,
+                TestColIndex,
+                allValues.length - 2,
+                1
+              );
+              testNameRangeAll.load("values");
+              await context.sync();
+              // create YNValues by mapping test_name -> YN_check
+              const allTestNames = testNameRangeAll.values.map((row) => row[0]);
+              let YNValues = [];
+              try {
+                YNValues = allTestNames.map((testName) => {
+                  const match = TestData.find((item) => item.test_name === testName);
+                  return [match ? match.YN_check : ""];
+                });
+              } catch (err) {
+                console.error("Error while creating YNValues:", err);
+              }
+              let YNRange = sheet.getRangeByIndexes(
+                2,
+                productColIndex + stage_array_index,
+                YNValues.length,
+                1
+              );
+              YNRange.load("values");
+              await context.sync();
+
+              if (YNValues.length === 0) {
+                console.warn("No Y/N check data");
+                logToConsole("No Y/N check data");
+              } else {
+                console.log("YN.length of %s %s is %d", productName, stagename, YNValues.length);
+                logToConsole("YN.length of %s %s is %d", productName, stagename, YNValues.length);
+              }
+              YNRange.values = YNValues;
+              await context.sync();
+              const IsUsedIndex = headers.indexOf("Is used (Y/N)");
+              let IsUsedDataRange = sheet.getRangeByIndexes(
+                2,
+                IsUsedIndex,
+                YNRange.values.length,
+                1
+              );
+              IsUsedDataRange.load("values");
+              await context.sync();
+              let IsUsedData = IsUsedDataRange.values;
+              if (!Array.isArray(IsUsedData) || IsUsedData.length === 0) {
+                IsUsedData = Array.from({ length: YNRange.values.length }, () => [""]);
+              }
+              //create IsUsed data
+              for (let i = 0; i < YNRange.values.length; i++) {
+                if (YNRange.values[i][0] === "Y") {
+                  if (IsUsedData[i][0] === "Partial" || IsUsedData[i][0] === "No") {
+                    IsUsedData[i][0] = "Partial";
+                  } else if (IsUsedData[i][0] === "") {
+                    IsUsedData[i][0] = "All";
                   }
+                } else {
+                  if (IsUsedData[i][0] === "All" || IsUsedData[i][0] === "Partial") {
+                    IsUsedData[i][0] = "Partial";
+                  } else IsUsedData[i][0] = "No";
                 }
-                IsUsedDataRange.values = IsUsedData;
-                await context.sync();
-                //conditional formatting color
-                const conditionalFormat = YNRange.conditionalFormats.add(
+              }
+              IsUsedDataRange.values = IsUsedData;
+              await context.sync();
+              //conditional formatting color
+              const conditionalFormat = YNRange.conditionalFormats.add(
+                Excel.ConditionalFormatType.containsText
+              );
+              conditionalFormat.textComparison.format.fill.color = "#C6EFCE";
+              conditionalFormat.textComparison.rule = {
+                operator: Excel.ConditionalTextOperator.contains,
+                text: "Y",
+              };
+              const IsUsedkeywords = ["All", "Partial"];
+              const colors = ["#C6EFCE", "#FFEB9C"];
+              for (let i = IsUsedDataRange.conditionalFormats.count - 1; i >= 0; i--) {
+                IsUsedDataRange.conditionalFormats.getItemAt(i).delete();
+              }
+              await context.sync();
+              for (let i = 0; i < IsUsedkeywords.length; i++) {
+                const word = IsUsedkeywords[i];
+                const color = colors[i];
+
+                const conditionalFormat = IsUsedDataRange.conditionalFormats.add(
                   Excel.ConditionalFormatType.containsText
                 );
-                conditionalFormat.textComparison.format.fill.color = "#C6EFCE";
+                conditionalFormat.textComparison.format.fill.color = color;
                 conditionalFormat.textComparison.rule = {
                   operator: Excel.ConditionalTextOperator.contains,
-                  text: "Y",
+                  text: word,
                 };
-                const IsUsedkeywords = ["All", "Partial"];
-                const colors = ["#C6EFCE", "#FFEB9C"];
-                for (let i = IsUsedDataRange.conditionalFormats.count - 1; i >= 0; i--) {
-                  IsUsedDataRange.conditionalFormats.getItemAt(i).delete();
-                }
-                await context.sync();
-                for (let i = 0; i < IsUsedkeywords.length; i++) {
-                  const word = IsUsedkeywords[i];
-                  const color = colors[i];
-              
-                  const conditionalFormat = IsUsedDataRange.conditionalFormats.add(
-                    Excel.ConditionalFormatType.containsText
-                  );
-                  conditionalFormat.textComparison.format.fill.color = color;
-                  conditionalFormat.textComparison.rule = {
-                    operator: Excel.ConditionalTextOperator.contains,
-                    text: word,
-                  };
-                }
-
-
-                await context.sync();
-
-                console.log("Finished processing one file");
-                logToConsole("Finished processing one file");
-                file_processed++;
-                resolve(file_processed);
-                document.body.style.cursor = "default";
-              });
-            })
-        );
+              }
+              await context.sync();
+              console.log("Finished processing one file");
+              logToConsole("Finished processing one file");
+              file_processed++;
+              resolve(file_processed);
+              document.body.style.cursor = "default";
+            });
+          });
       });
     };
     reader.onerror = reject;
     reader.readAsArrayBuffer(file);
   });
 }
-
+//For processing datalog from EY
 async function uploadEYdatalog(file, file_processed) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -755,15 +626,10 @@ async function uploadEYdatalog(file, file_processed) {
       console.log(`Uploading Excel Datalog to API: ${file.name}`);
       logToConsole(`Uploading Excel Datalog to API: ${file.name}`);
       const data = new Uint8Array(e.target.result);
-      /*const response = await fetch("https://localhost:8000/process-EY/", {
-        method: "POST",
-        body: formData,
-      });*/
       const response = await fetch("https://limit-project-demo.onrender.com/process-EY/", {
         method: "POST",
         body: formData,
       });
-
       /*{ result will look like this
           "data": [
           {
@@ -810,7 +676,6 @@ async function uploadEYdatalog(file, file_processed) {
         let OneProduct_Allstage = All_EY_Stage_Product.filter(
           (item) => item.name === tempProductname
         );
-
         console.log("OneProduct_Allstage: ", OneProduct_Allstage);
         //loop for each stage of one product
         for (let item of OneProduct_Allstage) {
@@ -835,7 +700,7 @@ async function uploadEYdatalog(file, file_processed) {
     reader.readAsArrayBuffer(file);
   });
 }
-
+//For importing test program folder
 async function importFolder(formData) {
   let arranged_stages = [];
   let Allpair = [];
@@ -844,11 +709,6 @@ async function importFolder(formData) {
   let limit_compare = [];
   await Excel.run(async (context) => {
     document.body.style.cursor = "wait";
-    // 1. อัปโหลดไฟล์ทั้งหมดไปยัง Web API
-    /*const response = await fetch("https://localhost:8000/upload-folder/", {
-      method: "POST",
-      body: formData,
-    });*/
     const response = await fetch("https://limit-project-demo.onrender.com/upload-folder/", {
       method: "POST",
       body: formData,
@@ -861,13 +721,13 @@ async function importFolder(formData) {
     logToConsole("Import Folder fetched successfully");
     const result = await response.json();
     const mfhFiles = result.mfh_files || [];
-    // 2. แสดงรายชื่อ .mfh ใน UI
+    //display .mfh name list in UI
     const mfhList = document.getElementById("mfh-list");
     mfhList.innerHTML = "";
     const sheets = context.workbook.worksheets;
     sheets.load("items/name");
     await context.sync();
-    // 3. ตรวจสอบและสร้าง InputFiles sheet ถ้ายังไม่มี
+    //check and create InputFiles sheet
     let sheetName = "InputFiles";
     let existingNames = sheets.items.map((s) => s.name);
     let inputSheet;
@@ -878,13 +738,13 @@ async function importFolder(formData) {
       const headers = ["File_Name"];
       const headerRange = inputSheet.getRangeByIndexes(0, 0, 1, headers.length);
       headerRange.values = [headers];
-      headerRange.format.fill.color = "#70d9ff";
+      headerRange.format.fill.color = "#C6EFCE";
       headerRange.format.font.bold = true;
       inputSheet.position = 0;
       await context.sync();
     }
 
-    // 4. ตรวจสอบและสร้าง Masterfile sheet ถ้ายังไม่มี
+    //check and create Masterfile sheet
     sheetName = "Masterfile";
     let masterSheet;
     existingNames = sheets.items.map((s) => s.name);
@@ -893,11 +753,10 @@ async function importFolder(formData) {
       logToConsole("There is no Masterfile yet...Creating Masterfile");
       const sheets = context.workbook.worksheets;
       sheets.load("items/name");
-      await context.sync(); //wait to finish loading first
+      await context.sync();
       const baseName = "Masterfile";
       let sheetName = baseName;
       const existingNames = sheets.items.map((s) => s.name);
-      // ให้มีมาสเตอร์ไฟล์ ไฟล์เดียว
       if (existingNames.includes(sheetName)) {
         //I'll be back!!!!
       } else {
@@ -906,35 +765,27 @@ async function importFolder(formData) {
       }
       masterSheet.activate();
     }
-
     mfhFiles.forEach((fileName) => {
       const li = document.createElement("li");
       li.textContent = `${fileName} (ready)`;
       li.style.cursor = "pointer";
       li.addEventListener("click", async () => {
-        // ลบ class 'selected-file' ออกจากรายการอื่น ๆ ก่อน
+        // remove class 'selected-file' from other list
         document.querySelectorAll("li").forEach((item) => {
           item.classList.remove("selected-file");
         });
-
-        // เพิ่ม class ให้กับรายการที่ถูกคลิก
+        // add new class for selected list
         li.classList.add("selected-file");
-
-        /*const res = await fetch(
-          `https://localhost:8000/process-testtable/?filename=${encodeURIComponent(fileName)}`
-        );*/
         const res = await fetch(
           `https://limit-project-demo.onrender.com/process-testtable/?filename=${encodeURIComponent(
             fileName
           )}`
         );
-        //https://limit-project-demo.onrender.com
         if (!res.ok) {
           const container = document.getElementById("download-links");
           container.innerHTML = `<p style="color:red;">Failed to process ${fileName}</p>`;
           return;
         }
-
         li.textContent = fileName;
         const data = await res.json();
         displayResults(data.files);
@@ -971,10 +822,6 @@ async function importFolder(formData) {
                     await context.sync();
                   }
                 }
-                /*usedRange.load(["values", "rowCount", "columnCount"]);
-                await context.sync();
-                headers = usedRange.values[0];
-                stages = usedRange.values[1];*/
                 usedRange.load(["rowCount", "columnCount"]);
                 await context.sync();
                 const sheet = context.workbook.worksheets.getItem("Masterfile");
@@ -986,7 +833,7 @@ async function importFolder(formData) {
                   const rowCount = Math.min(chunkSize, totalRows - startRow);
                   const range = sheet.getRangeByIndexes(startRow, 0, rowCount, totalCols);
                   range.load("values");
-                  await context.sync(); // รวมข้อมูลเข้า allValues
+                  await context.sync();
                   allValues = allValues.concat(range.values);
                 }
                 headers = allValues[0];
@@ -1047,7 +894,7 @@ async function importFolder(formData) {
             const rowCount = Math.min(chunkSize, totalRows - startRow);
             const range = sheet.getRangeByIndexes(startRow, 0, rowCount, totalCols);
             range.load("values");
-            await context.sync(); // รวมข้อมูลเข้า allValues
+            await context.sync();
             allValues = allValues.concat(range.values);
           }
           let headers = allValues[0];
@@ -1071,7 +918,6 @@ async function importFolder(formData) {
           usedRange = masterSheet.getUsedRange();
           usedRange.load(["rowCount", "columnCount"]);
           await context.sync();
-
           chunkSize = 1000;
           totalRows = usedRange.rowCount;
           totalCols = usedRange.columnCount;
@@ -1080,7 +926,7 @@ async function importFolder(formData) {
             const rowCount = Math.min(chunkSize, totalRows - startRow);
             const range = sheet.getRangeByIndexes(startRow, 0, rowCount, totalCols);
             range.load("values");
-            await context.sync(); // รวมข้อมูลเข้า allValues
+            await context.sync();
             allValues = allValues.concat(range.values);
           }
           headers = allValues[0];
@@ -1098,25 +944,21 @@ async function importFolder(formData) {
             .sort((a, b) => {
               return parseInt(a[0].replace("wh", "")) - parseInt(b[0].replace("wh", ""));
             });
-
           wr = wafer_stage
             .filter((item) => item[1] === "r")
             .sort((a, b) => {
               return parseInt(a[0].replace("wr", "")) - parseInt(b[0].replace("wr", ""));
             });
-
           wc = wafer_stage
             .filter((item) => item[1] === "c")
             .sort((a, b) => {
               return parseInt(a[0].replace("wc", "")) - parseInt(b[0].replace("wc", ""));
             });
-
           wi = wafer_stage
             .filter((item) => item[1] === "i")
             .sort((a, b) => {
               return parseInt(a[0].replace("wi", "")) - parseInt(b[0].replace("wi", ""));
             });
-
           ww = wafer_stage
             .filter((item) => item[1] === "w")
             .sort((a, b) => {
@@ -1144,31 +986,26 @@ async function importFolder(formData) {
             wafer_stage.push(...wi);
           }
           arranged_stages.push(...wafer_stage);
-
           fh = final_stage
             .filter((item) => item[1] === "h")
             .sort((a, b) => {
               return parseInt(a[0].replace("fh", "")) - parseInt(b[0].replace("fh", ""));
             });
-
           fr = final_stage
             .filter((item) => item[1] === "r")
             .sort((a, b) => {
               return parseInt(a[0].replace("fr", "")) - parseInt(b[0].replace("fr", ""));
             });
-
           fc = final_stage
             .filter((item) => item[1] === "c")
             .sort((a, b) => {
               return parseInt(a[0].replace("fc", "")) - parseInt(b[0].replace("fc", ""));
             });
-
           fi = final_stage
             .filter((item) => item[1] === "i")
             .sort((a, b) => {
               return parseInt(a[0].replace("fi", "")) - parseInt(b[0].replace("fi", ""));
             });
-
           fw = final_stage
             .filter((item) => item[1] === "w")
             .sort((a, b) => {
@@ -1197,7 +1034,6 @@ async function importFolder(formData) {
           }
           arranged_stages.push(...final_stage);
           arranged_stages.push(...a_stage); // needs to fix this if there are more 'a' test
-
           //send stages data to checkbox
           const uniqueWh = wh.filter((_, index) => index % 2 === 0);
           const uniqueWr = wr.filter((_, index) => index % 2 === 0);
@@ -1211,44 +1047,45 @@ async function importFolder(formData) {
           const uniqueFw = fw.filter((_, index) => index % 2 === 0);
           const uniqueAr = a_stage.filter((_, index) => index % 2 === 0);
           let pairList = [];
+          // match stages for comparison and prevent duplicate/self matching
           uniqueWh.forEach((w) => {
             uniqueFh.forEach((f) => {
-              const pairId = `${w}__${f}`; // ใช้ __ เพื่อแยกชื่อ stage
+              const pairId = `${w}__${f}`; // use __ to seperate stage
               const label = `${w} ? ${f}`;
               pairList.push({ id: pairId, label });
             });
           });
           uniqueWr.forEach((w) => {
             uniqueFr.forEach((f) => {
-              const pairId = `${w}__${f}`; // ใช้ __ เพื่อแยกชื่อ stage
+              const pairId = `${w}__${f}`;
               const label = `${w} ? ${f}`;
               pairList.push({ id: pairId, label });
             });
           });
           uniqueWc.forEach((w) => {
             uniqueFc.forEach((f) => {
-              const pairId = `${w}__${f}`; // ใช้ __ เพื่อแยกชื่อ stage
+              const pairId = `${w}__${f}`;
               const label = `${w} ? ${f}`;
               pairList.push({ id: pairId, label });
             });
           });
           uniqueWi.forEach((w) => {
             uniqueFi.forEach((f) => {
-              const pairId = `${w}__${f}`; // ใช้ __ เพื่อแยกชื่อ stage
+              const pairId = `${w}__${f}`;
               const label = `${w} ? ${f}`;
               pairList.push({ id: pairId, label });
             });
           });
           uniqueWw.forEach((w) => {
             uniqueFw.forEach((f) => {
-              const pairId = `${w}__${f}`; // ใช้ __ เพื่อแยกชื่อ stage
+              const pairId = `${w}__${f}`;
               const label = `${w} ? ${f}`;
               pairList.push({ id: pairId, label });
             });
           });
           uniqueFr.forEach((w) => {
             uniqueAr.forEach((f) => {
-              const pairId = `${w}__${f}`; // ใช้ __ เพื่อแยกชื่อ stage
+              const pairId = `${w}__${f}`;
               const label = `${w} ? ${f}`;
               pairList.push({ id: pairId, label });
             });
@@ -1256,7 +1093,6 @@ async function importFolder(formData) {
           uniqueWh.forEach((a, i) => {
             uniqueWh.forEach((b, j) => {
               if (i < j) {
-                // ป้องกันการจับคู่ซ้ำและตัวเอง
                 const pairId = `${a}__${b}`;
                 const label = `${a} ? ${b}`;
                 pairList.push({ id: pairId, label });
@@ -1266,7 +1102,6 @@ async function importFolder(formData) {
           uniqueWr.forEach((a, i) => {
             uniqueWr.forEach((b, j) => {
               if (i < j) {
-                // ป้องกันการจับคู่ซ้ำและตัวเอง
                 const pairId = `${a}__${b}`;
                 const label = `${a} ? ${b}`;
                 pairList.push({ id: pairId, label });
@@ -1276,7 +1111,6 @@ async function importFolder(formData) {
           uniqueWc.forEach((a, i) => {
             uniqueWc.forEach((b, j) => {
               if (i < j) {
-                // ป้องกันการจับคู่ซ้ำและตัวเอง
                 const pairId = `${a}__${b}`;
                 const label = `${a} ? ${b}`;
                 pairList.push({ id: pairId, label });
@@ -1286,7 +1120,6 @@ async function importFolder(formData) {
           uniqueWi.forEach((a, i) => {
             uniqueWi.forEach((b, j) => {
               if (i < j) {
-                // ป้องกันการจับคู่ซ้ำและตัวเอง
                 const pairId = `${a}__${b}`;
                 const label = `${a} ? ${b}`;
                 pairList.push({ id: pairId, label });
@@ -1296,7 +1129,6 @@ async function importFolder(formData) {
           uniqueWw.forEach((a, i) => {
             uniqueWw.forEach((b, j) => {
               if (i < j) {
-                // ป้องกันการจับคู่ซ้ำและตัวเอง
                 const pairId = `${a}__${b}`;
                 const label = `${a} ? ${b}`;
                 pairList.push({ id: pairId, label });
@@ -1306,7 +1138,6 @@ async function importFolder(formData) {
           uniqueFh.forEach((a, i) => {
             uniqueFh.forEach((b, j) => {
               if (i < j) {
-                // ป้องกันการจับคู่ซ้ำและตัวเอง
                 const pairId = `${a}__${b}`;
                 const label = `${a} ? ${b}`;
                 pairList.push({ id: pairId, label });
@@ -1316,7 +1147,6 @@ async function importFolder(formData) {
           uniqueFr.forEach((a, i) => {
             uniqueFr.forEach((b, j) => {
               if (i < j) {
-                // ป้องกันการจับคู่ซ้ำและตัวเอง
                 const pairId = `${a}__${b}`;
                 const label = `${a} ? ${b}`;
                 pairList.push({ id: pairId, label });
@@ -1326,7 +1156,6 @@ async function importFolder(formData) {
           uniqueFc.forEach((a, i) => {
             uniqueFc.forEach((b, j) => {
               if (i < j) {
-                // ป้องกันการจับคู่ซ้ำและตัวเอง
                 const pairId = `${a}__${b}`;
                 const label = `${a} ? ${b}`;
                 pairList.push({ id: pairId, label });
@@ -1336,7 +1165,6 @@ async function importFolder(formData) {
           uniqueFi.forEach((a, i) => {
             uniqueFi.forEach((b, j) => {
               if (i < j) {
-                // ป้องกันการจับคู่ซ้ำและตัวเอง
                 const pairId = `${a}__${b}`;
                 const label = `${a} ? ${b}`;
                 pairList.push({ id: pairId, label });
@@ -1346,47 +1174,31 @@ async function importFolder(formData) {
           uniqueFw.forEach((a, i) => {
             uniqueFw.forEach((b, j) => {
               if (i < j) {
-                // ป้องกันการจับคู่ซ้ำและตัวเอง
                 const pairId = `${a}__${b}`;
                 const label = `${a} ? ${b}`;
                 pairList.push({ id: pairId, label });
               }
             });
           });
-
           console.log(pairList);
-          // สร้าง checkbox จาก pairList
-
+          // create checkbox from pairList
           pairList.forEach((pair) => {
             const labelWrapper = document.createElement("label");
-            labelWrapper.className = "label-item"; // สำคัญมาก
-
+            labelWrapper.className = "label-item";
             const checkbox = document.createElement("input");
             checkbox.type = "checkbox";
             checkbox.id = pair.id;
             checkbox.name = "stagePair";
             checkbox.value = pair.id;
-
             labelWrapper.appendChild(checkbox);
             labelWrapper.appendChild(document.createTextNode(` ${pair.label}`));
             labelList.appendChild(labelWrapper);
-
-            /*const label = document.createElement("label");
-            label.htmlFor = pair.id;
-            label.textContent = ` ${pair.label}`;
-            checkboxForm.appendChild(checkbox);
-            checkboxForm.appendChild(label);
-            checkboxForm.appendChild(document.createElement("br"));*/
             //collect each pair in array
             let first = pair.label.slice(0, 3); //first three letters
             let last = pair.label.slice(-3); //last three letters
-            /*Allpair.push = first;
-            Allpair.push = last;*/
             Allfirst.push(...[first]);
             Alllast.push(...[last]);
             let pair_header = [
-              //"LL",
-              // "UL",
               "LL " + first.toUpperCase() + " ? " + last.toUpperCase(),
               "UL " + first.toUpperCase() + " ? " + last.toUpperCase(),
             ];
@@ -1419,7 +1231,7 @@ async function importFolder(formData) {
             const rowCount = Math.min(chunkSize, totalRows - startRow);
             const range = sheet.getRangeByIndexes(startRow, 0, rowCount, totalCols);
             range.load("values");
-            await context.sync(); // รวมข้อมูลเข้า allValues
+            await context.sync();
             allValues = allValues.concat(range.values);
           }
           headers = allValues[0];
@@ -1436,8 +1248,7 @@ async function importFolder(formData) {
                 for (let col = 0; col < headers.length; col++) {
                   const header = headers[col];
                   if (header === "Lsl" || header === "Usl") {
-                    const stageName = stages[col]; // stage ที่ต้องการใน column นี้
-                    // หาตำแหน่งของ stage ในไฟล์
+                    const stageName = stages[col];
                     if (header === "Lsl") {
                       const file_stageIndex = stageHeaders.indexOf(stageName);
                       if (file_stageIndex === NaN) {
@@ -1454,7 +1265,6 @@ async function importFolder(formData) {
                   } else {
                     const MasterheaderIndex = headers.indexOf(header);
                     const headerIndex = fileHeaders.indexOf(header);
-                    // ตรวจสอบว่า header ทั้งสองฝั่งมีอยู่จริง
                     if (MasterheaderIndex !== -1 && headerIndex !== -1) {
                       rowData[MasterheaderIndex] = row[headerIndex];
                     }
@@ -1467,7 +1277,6 @@ async function importFolder(formData) {
             }
           }
           await context.sync();
-
           //create columns for limit compare
           usedRange = masterSheet.getUsedRange();
           usedRange.load(["rowCount", "columnCount"]);
@@ -1480,7 +1289,7 @@ async function importFolder(formData) {
             const rowCount = Math.min(chunkSize, totalRows - startRow);
             const range = sheet.getRangeByIndexes(startRow, 0, rowCount, totalCols);
             range.load("values");
-            await context.sync(); // รวมข้อมูลเข้า allValues
+            await context.sync();
             allValues = allValues.concat(range.values);
           }
           headers = allValues[0];
@@ -1514,7 +1323,6 @@ async function importFolder(formData) {
           await context.sync();
           document.body.style.cursor = "default";
         });
-
         await Excel.run(async (context) => {
           await context.sync();
           await new Promise((resolve) => setTimeout(resolve, 100));
@@ -1524,7 +1332,6 @@ async function importFolder(formData) {
           const usedRange = masterSheet.getUsedRange();
           usedRange.load(["rowCount", "columnCount"]);
           await context.sync();
-
           let sheet = context.workbook.worksheets.getItem("Masterfile");
           let chunkSize = 1000;
           let totalRows = usedRange.rowCount;
@@ -1534,7 +1341,7 @@ async function importFolder(formData) {
             const rowCount = Math.min(chunkSize, totalRows - startRow);
             const range = sheet.getRangeByIndexes(startRow, 0, rowCount, totalCols);
             range.load("values");
-            await context.sync(); // รวมข้อมูลเข้า allValues
+            await context.sync();
             allValues = allValues.concat(range.values);
           }
           let headers = allValues[0];
@@ -1543,7 +1350,6 @@ async function importFolder(formData) {
           let rowCount = usedRange.rowCount;
           let columnCount = usedRange.columnCount;
           logToConsole("rowCount : %d columnCount : %d", rowCount, columnCount);
-
           let LLspecIndex = stages.indexOf("Spec");
           const All_LL_specIndex = headers.indexOf("All LL ? Spec");
           const All_UL_specIndex = headers.indexOf("All UL ? Spec");
@@ -1569,25 +1375,20 @@ async function importFolder(formData) {
             let in_outllResult = "In-spec";
             let in_outulResult = "In-spec";
             ALL_compare_result[i] = [];
-            // เริ่มจาก index 2 เพราะ index 0,1 คือ specLL, specUL
+            // start from index 2 because index 0,1 are specLL, specUL
             for (let j = 2; j + 1 < row.length; j += 2) {
               const LLvalue = row[j];
               const ULvalue = row[j + 1];
-
-              // ตรวจสอบว่าค่าทั้งสองมีจริงก่อน
               if (LLvalue === undefined || ULvalue === undefined) {
                 console.warn(`Missing LSL/USL at row ${i}, columns ${j} and ${j + 1}`);
                 continue;
               }
-
               let LLspec_limResult = "";
               let ULspec_limResult = "";
-
-              // LL เปรียบเทียบ
+              // LL comparison
               if (LLvalue !== "" && LLvalue != null && !isNaN(LLvalue)) {
                 if (!(LLvalue >= specLL)) {
                   in_outllResult = "Out-spec";
-
                   LLspec_limResult = "Tighten";
                 } else if (specLL < LLvalue) {
                   LLspec_limResult = "Widen";
@@ -1595,12 +1396,10 @@ async function importFolder(formData) {
                   LLspec_limResult = "Same";
                 }
               }
-
-              // UL เปรียบเทียบ
+              // UL comparison
               if (ULvalue !== "" && ULvalue != null && !isNaN(ULvalue)) {
                 if (!(ULvalue <= specUL)) {
                   in_outulResult = "Out-spec";
-
                   ULspec_limResult = "Tighten";
                 } else if (specUL > ULvalue) {
                   ULspec_limResult = "Widen";
@@ -1608,17 +1407,14 @@ async function importFolder(formData) {
                   ULspec_limResult = "Same";
                 }
               }
-
               // Collect data of each row
-
               ALL_compare_result[i].push(LLspec_limResult);
               ALL_compare_result[i].push(ULspec_limResult);
             }
             All_LL_spec.push([in_outllResult]);
             All_UL_spec.push([in_outulResult]);
           }
-
-          // เขียนผลลัพธ์ลง Excel
+          // Write Result in Excel
           masterSheet.getRangeByIndexes(
             2,
             firstLLindex,
@@ -1626,7 +1422,6 @@ async function importFolder(formData) {
             ALL_compare_result[0].length
           ).values = ALL_compare_result;
           await context.sync();
-
           logToConsole("All_LL_spec length : %d", All_LL_spec.length);
           logToConsole("All_UL_spec length : %d", All_UL_spec.length);
           let All_LL_specRange = masterSheet.getRangeByIndexes(
@@ -1644,21 +1439,45 @@ async function importFolder(formData) {
           All_LL_specRange.values = All_LL_spec;
           All_UL_specRange.values = All_UL_spec;
           await context.sync();
-          //insert "Is used (Y/N)", "Can remove (Y/N)"
+          //Insert "Is used (Y/N)", "Can remove (Y/N)"
           const columnToInsert = masterSheet.getRangeByIndexes(0, 3, rowCount, 2);
           columnToInsert.insert(Excel.InsertShiftDirection.right);
           masterSheet.getCell(0, 3).values = "Is used (Y/N)";
           masterSheet.getCell(0, 4).values = "Can remove (Y/N)";
           await context.sync();
           logToConsole("Limit Compare Successed");
+          //In/Out-spec conditional formatting
+          const IN_OUTkeywords = ["Out-spec", "In-spec"];
+          const colors = ["#ff9c9c", "#C6EFCE"];
+          for (let i = 0; i < IN_OUTkeywords.length; i++) {
+            const word = IN_OUTkeywords[i];
+            const color = colors[i];
+            const LL_conditionalFormat = All_LL_specRange.conditionalFormats.add(
+              Excel.ConditionalFormatType.containsText
+            );
+            LL_conditionalFormat.textComparison.format.fill.color = color;
+            LL_conditionalFormat.textComparison.rule = {
+              operator: Excel.ConditionalTextOperator.contains,
+              text: word,
+            };
+            const UL_conditionalFormat = All_UL_specRange.conditionalFormats.add(
+              Excel.ConditionalFormatType.containsText
+            );
+            UL_conditionalFormat.textComparison.format.fill.color = color;
+            UL_conditionalFormat.textComparison.rule = {
+              operator: Excel.ConditionalTextOperator.contains,
+              text: word,
+            };
+          }
+
+          await context.sync();
           document.body.style.cursor = "default";
         });
-
         await Excel.run(async (context) => {
           document.body.style.cursor = "wait";
           await context.sync();
-          //insert limit vs limit col
-          const masterSheet = context.workbook.worksheets.getItem("Masterfile"); // ✅ ดึงใหม่
+          //Insert limit vs limit col
+          const masterSheet = context.workbook.worksheets.getItem("Masterfile");
           await context.sync();
           let usedRange = masterSheet.getUsedRange();
           usedRange.load(["rowCount", "columnCount"]);
@@ -1672,7 +1491,7 @@ async function importFolder(formData) {
             const rowCount = Math.min(chunkSize, totalRows - startRow);
             const range = sheet.getRangeByIndexes(startRow, 0, rowCount, totalCols);
             range.load("values");
-            await context.sync(); // รวมข้อมูลเข้า allValues
+            await context.sync();
             allValues = allValues.concat(range.values);
           }
           let headers = allValues[0];
@@ -1696,13 +1515,11 @@ async function importFolder(formData) {
             }
             limit.push(rowData);
           }
-
           //limit vs limit comparison
-
           let ALL_compare_result = [];
           for (let i = 0; i < Allfirst.length; i++) {
             const f = Allfirst[i];
-            const l = Alllast[i]; // ใช้ index เดียวกัน
+            const l = Alllast[i];
             const fIndex = stages.indexOf(f);
             const lIndex = stages.indexOf(l);
             if (fIndex < 0 || lIndex < 0) {
@@ -1748,7 +1565,6 @@ async function importFolder(formData) {
             }
           }
           console.log("All compare:", ALL_compare_result);
-          //write data
           let lastSpecLimit_index = headers.indexOf(limit_compare[limit_compare.length - 1]);
           console.log(lastSpecLimit_index);
           if (lastSpecLimit_index < 0) {
@@ -1762,77 +1578,17 @@ async function importFolder(formData) {
             ALL_compare_result[0].length
           ).values = ALL_compare_result;
           await context.sync();
+          //fill header color
+          usedRange.load("columnCount");
+          await context.sync();
+          for (let i = 0; i < usedRange.columnCount; i++) {
+            masterSheet.getCell(0, i).format.fill.color = "#c4d4f3";
+          }
+          await context.sync();
           document.body.style.cursor = "default";
         });
 
-        //In/Out-spec fill color
-        /*await Excel.run(async (context) => {
-          document.body.style.cursor = "wait";
-          const masterSheet = context.workbook.worksheets.getItem("Masterfile");
-          const usedRange = masterSheet.getUsedRange();
-          usedRange.load(["values", "rowCount", "columnCount"]);
-          await context.sync();
-          const headers = usedRange.values[0];
-          let skyRange;
-          //fill skyblue
-          /*for (let i = 0; i < headers.length; i++) {
-            if (headers[i] === "Lsl") {
-              skyRange = masterSheet.getRangeByIndexes(1, i, usedRange.rowCount - 1, 1);
-              skyRange.format.fill.color = "#d6f0fa";
-            }
-          }
-          await context.sync();
-          const All_LL_specIndex = headers.indexOf("All LL ? Spec");
-          let All_LL_specRange = masterSheet.getRangeByIndexes(
-            2,
-            All_LL_specIndex,
-            usedRange.rowCount,
-            1
-          );
-          const All_UL_specIndex = headers.indexOf("All UL ? Spec");
-          let All_UL_specRange = masterSheet.getRangeByIndexes(
-            2,
-            All_UL_specIndex,
-            usedRange.rowCount,
-            1
-          );
-          // โหลดค่าทั้งหมดของ LL และ UL
-          for (let i = 0; i < usedRange.rowCount; i++) {
-            All_LL_specRange.getCell(i, 0).load("values");
-            All_UL_specRange.getCell(i, 0).load("values");
-          }
-          await context.sync(); // ✅ sync ทีเดียวหลังโหลดทั้งหมด
-
-          // เปลี่ยนสี LL
-          /*for (let i = 0; i <= usedRange.rowCount; i++) {
-            const cell = All_LL_specRange.getCell(i, 0);
-            cell.load("values");
-            await context.sync();
-            const value = cell.values[0][0];
-            if (value === "In-spec") {
-              cell.format.fill.color = "#C6EFCE";
-            } else if (value === "Out-spec") {
-              cell.format.fill.color = "#FF9D9D";
-            }
-          }
-
-          // เปลี่ยนสี UL
-          for (let i = 0; i <= usedRange.rowCount; i++) {
-            const cell = All_UL_specRange.getCell(i, 0);
-            cell.load("values");
-            await context.sync();
-            const value = cell.values[0][0];
-            if (value === "In-spec") {
-              cell.format.fill.color = "#C6EFCE";
-            } else if (value === "Out-spec") {
-              cell.format.fill.color = "#FF9D9D";
-            }
-          }
-          logToConsole("In/Out spec color filled succesfully");
-          await context.sync(); // ✅ sync การเปลี่ยนสีทั้งหมด
-          document.body.style.cursor = "default";
-        });*/
-        // เขียนชื่อไฟล์ลง InputFiles sheet
+        //write file name in InputFiles sheet
         await Excel.run(async (context) => {
           document.body.style.cursor = "wait";
           const inputSheet = context.workbook.worksheets.getItem("InputFiles");
@@ -1853,26 +1609,33 @@ async function importFolder(formData) {
   });
 }
 
-// ฟังก์ชันแสดงผลลัพธ์จาก .mfh
+// display .mfh files
 function displayResults(files) {
   document.body.style.cursor = "wait";
-  const container = document.getElementById("download-links"); //ดึง element ที่มี id="download-links" มาเก็บไว้ในตัวแปร container เพื่อใช้แสดงผล
-  container.innerHTML = ""; //เคลียร์เนื้อหาภายใน container ก่อน เพื่อไม่ให้ผลลัพธ์ซ้อนกัน
+  const container = document.getElementById("download-links");
+  container.innerHTML = ""; // empty container
+  let startRow = 3;
   files.forEach((file) => {
-    //	วนลูปผ่าน array ของไฟล์ที่ส่งเข้ามา
-    const div = document.createElement("div"); //สร้าง <div> ใหม่สำหรับแสดงผลแต่ละไฟล์
-    //ใส่ HTML ลงใน <div> โดย: แสดงชื่อไฟล์ (file.path) และสถานะ (file.status) ถ้า status === "ok" ให้แสดงเนื้อหาบางส่วนของไฟล์ (5 แถวแรก) ใน <pre>
+    const rowCount = file.content?.length || 0;
+    const endRow = rowCount - 3 + startRow;
+    const div = document.createElement("div");
     div.innerHTML = `
-      <p><b>${file.path}</b> - ${file.status}</p>
+      <p><b>${file.path}</b> - ${file.status} (${startRow}-${endRow})</p>
     `;
-    container.appendChild(div); //เพิ่ม <div> ที่สร้างเข้าไปใน container เพื่อแสดงผลใน UI
+    container.appendChild(div);
+    startRow = endRow + 1;
   });
   document.body.style.cursor = "default";
 }
 
 function logToConsole(format, ...args) {
   const consoleDiv = document.getElementById("consoleOutput");
-  // แทนที่ %s, %d, %f ทีละตัว
+
+  // create timestamp
+  const now = new Date();
+  const timestamp = now.toLocaleString(); // or use now.toISOString() for international standard format
+
+  // replace each %s, %d, %f
   let formatted = format;
   let argIndex = 0;
   formatted = formatted.replace(/%[sdif]/g, (match) => {
@@ -1888,8 +1651,10 @@ function logToConsole(format, ...args) {
         return String(arg);
     }
   });
+
+  // create a message with timestamp
   const line = document.createElement("div");
-  line.textContent = `> ${formatted}`;
+  line.textContent = `[${timestamp}] > ${formatted}`;
   consoleDiv.appendChild(line);
   consoleDiv.scrollTop = consoleDiv.scrollHeight;
 }
@@ -1914,7 +1679,7 @@ async function checkboxHide(UncheckedNames, checkedNames) {
       const rowCount = Math.min(chunkSize, totalRows - startRow);
       const range = masterSheet.getRangeByIndexes(startRow, 0, rowCount, totalCols);
       range.load("values");
-      await context.sync(); // รวมข้อมูลเข้า allValues
+      await context.sync();
       allValues = allValues.concat(range.values);
     }
     let headers = allValues[0];
@@ -2003,15 +1768,13 @@ async function Check_product_stage(productName, stagename) {
       const rowCount = Math.min(chunkSize, totalRows - startRow);
       const range = sheet.getRangeByIndexes(startRow, 0, rowCount, totalCols);
       range.load("values");
-      await context.sync(); // รวมข้อมูลเข้า allValues
+      await context.sync();
       allValues = allValues.concat(range.values);
     }
     let headers = allValues[0];
-    //let headers = usedRange.values[0];
     console.log("headers: ", headers);
 
     //Insert Product as a Product Name
-    //const EYData = XLSX.utils.sheet_to_json(EYsheet, { defval: "" }); //can use later if a file have only one product
     let productColIndex = headers.indexOf(productName);
     console.log("productColINdex before add product name or stage: %d", productColIndex);
     logToConsole("productColINdex before add product name or stage: %d", productColIndex);
@@ -2074,7 +1837,7 @@ async function Check_product_stage(productName, stagename) {
           Product_count++;
         }
       }
-      const colors = ["#C6EFCE", "#FFEB9C", "#FFC7CE", "#D9E1F2"];
+      const colors = ["#C6EFCE", "#FFEB9C", "#FFC7CE", "#e6cdfa"];
       const color = colors[Product_count % 4];
       product_name_head.format.fill.color = color;
       //add stage
@@ -2087,8 +1850,8 @@ async function Check_product_stage(productName, stagename) {
       await context.sync();
       const startCol = productColIndex;
       const stage_count = Allproduct_stage.filter((item) => item.name === productName).length; //how many stages does this product have
-      console.log("stage ของ product %s มีอยู่แล้วจำนวน %d", productName, stage_count);
-      logToConsole("stage ของ product %s มีอยู่แล้วจำนวน %d", productName, stage_count);
+      console.log("product :  %s , stage count : %d", productName, stage_count);
+      logToConsole("product : %s , stage count : %d", productName, stage_count);
       let columnToInsert = sheet.getRangeByIndexes(0, startCol + 1, 1, 1);
       columnToInsert.insert(Excel.InsertShiftDirection.right);
       usedRange = sheet.getUsedRange();
@@ -2098,7 +1861,6 @@ async function Check_product_stage(productName, stagename) {
       let stage_name_head = sheet.getRangeByIndexes(1, startCol + stage_count, stagerow, 1);
       stage_name_head.insert(Excel.InsertShiftDirection.right);
       usedRange = sheet.getUsedRange();
-      //usedRange.load("values");
       await context.sync();
       const stageCell = sheet.getCell(1, startCol + stage_count);
       stageCell.values = [[stagename]];
@@ -2112,7 +1874,7 @@ async function Check_product_stage(productName, stagename) {
     document.body.style.cursor = "default";
   });
 }
-
+// write data of new tests
 async function WriteNewtest(data) {
   console.log("data from EY oneproduct: ", data);
   await Excel.run(async (context) => {
@@ -2121,7 +1883,6 @@ async function WriteNewtest(data) {
     let usedRange = sheet.getUsedRange();
     usedRange.load(["rowCount", "columnCount"]);
     await context.sync();
-
     let chunkSize = 1000;
     let totalRows = usedRange.rowCount;
     let totalCols = usedRange.columnCount;
@@ -2130,8 +1891,7 @@ async function WriteNewtest(data) {
       const rowCount = Math.min(chunkSize, totalRows - startRow);
       const range = sheet.getRangeByIndexes(startRow, 0, rowCount, totalCols);
       range.load("values");
-      await context.sync(); // รวมข้อมูลเข้า allValues
-
+      await context.sync();
       allValues = allValues.concat(range.values);
     }
     let headers = allValues[0];
@@ -2139,21 +1899,20 @@ async function WriteNewtest(data) {
     const SuiteColIndex = headers.indexOf("Suite name");
     const TestColIndex = headers.indexOf("Test name");
     if (TestnumColIndex === -1) {
-      console.error("ไม่พบคอลัมน์ Test number");
-      logToConsole("ไม่พบคอลัมน์ Test number");
+      console.error("Can't find Test number column");
+      logToConsole("Can't find Test number column");
       return;
     }
     if (SuiteColIndex === -1) {
-      console.error("ไม่พบคอลัมน์ Suite name");
-      logToConsole("ไม่พบคอลัมน์ Suite name");
+      console.error("Can't find Suite name column");
+      logToConsole("Can't find Suite name column");
       return;
     }
     if (TestColIndex === -1) {
-      console.error("ไม่พบคอลัมน์ Test name");
-      logToConsole("ไม่พบคอลัมน์ Test name");
+      console.error("Can't find Test name column");
+      logToConsole("Can't find Test name column");
       return;
     }
-
     const testNameRange = sheet.getRangeByIndexes(2, TestColIndex, allValues.length - 2, 1);
     testNameRange.load("values");
     await context.sync();
@@ -2162,13 +1921,11 @@ async function WriteNewtest(data) {
     try {
       existingTestNames = testNameRange.values.flat().filter((v) => v !== "");
     } catch (err) {
-      console.error("เกิดปัญหาขณะอ่าน testNameRange.values:", err);
-      logToConsole("เกิดปัญหาขณะอ่าน testNameRange.values: %s", err.message || err);
+      console.error("Error while processing testNameRange.values:", err);
       return;
     }
     if (!Array.isArray(data)) {
-      console.error("data ไม่ใช่ array หรือยังไม่ได้โหลด");
-      logToConsole("data ไม่ใช่ array หรือยังไม่ได้โหลด");
+      console.error("data isn't an array or isn't loaded");
       return;
     }
     let newTests = [];
@@ -2176,13 +1933,11 @@ async function WriteNewtest(data) {
       newTests = data.filter((item) => !existingTestNames.includes(item.test_name));
       console.log("newTests from EY: ", newTests);
     } catch (err) {
-      console.error("เกิดปัญหาขณะ data.filter", err);
-      logToConsole("เกิดปัญหาขณะ data.filter: %s", err.message || err);
+      console.error("Error while data.filter", err);
       return;
     }
     if (!Array.isArray(allValues)) {
-      console.error("allValues ไม่ใช่ array");
-      logToConsole("allValues ไม่ใช่ array");
+      console.error("allValues isn't an array");
       return;
     }
     let startRow = allValues.length;
@@ -2192,15 +1947,13 @@ async function WriteNewtest(data) {
     if (newTests.length > 0) {
       const testNumbers = newTests.map((t) => [t?.test_number ?? ""]);
       logToConsole("newTests.length = %d", newTests.length);
-      // เขียน test numbers
       if (TestnumColIndex === -1) {
-        logToConsole("ไม่พบคอลัมน์ Test number ใน headers");
+        logToConsole("Can't find Test number column");
         return;
       }
       const writeRange = sheet.getRangeByIndexes(startRow, TestnumColIndex, newTests.length, 1);
       writeRange.values = testNumbers;
       await context.sync();
-      // เขียน suite name และ test name
       suiteRange = sheet.getRangeByIndexes(startRow, SuiteColIndex, newTests.length, 1);
       testRange = sheet.getRangeByIndexes(startRow, TestColIndex, newTests.length, 1);
       suiteValues = newTests.map((t) => [t.suite_name]);
@@ -2214,7 +1967,7 @@ async function WriteNewtest(data) {
     document.body.style.cursor = "default";
   });
 }
-
+//Process Y/N values of data from EY
 async function YN(data, productName, stagename) {
   await Excel.run(async (context) => {
     document.body.style.cursor = "wait";
@@ -2231,8 +1984,7 @@ async function YN(data, productName, stagename) {
       const rowCount = Math.min(chunkSize, totalRows - startRow);
       const range = sheet.getRangeByIndexes(startRow, 0, rowCount, totalCols);
       range.load("values");
-      await context.sync(); // รวมข้อมูลเข้า allValues
-
+      await context.sync();
       allValues = allValues.concat(range.values);
     }
     let headers = allValues[0];
@@ -2272,25 +2024,24 @@ async function YN(data, productName, stagename) {
     const SuiteColIndex = headers.indexOf("Suite name");
     const TestColIndex = headers.indexOf("Test name");
     if (TestnumColIndex === -1) {
-      console.error("ไม่พบคอลัมน์ Test number");
-      logToConsole("ไม่พบคอลัมน์ Test number");
+      console.error("Test number column is not found");
+      logToConsole("Test number column is not found");
       return;
     }
     if (SuiteColIndex === -1) {
-      console.error("ไม่พบคอลัมน์ Suite name");
-      logToConsole("ไม่พบคอลัมน์ Suite name");
+      console.error("Suite name column is not found");
+      logToConsole("Suite name column is not found");
       return;
     }
     if (TestColIndex === -1) {
-      console.error("ไม่พบคอลัมน์ Test name");
-      logToConsole("ไม่พบคอลัมน์ Test name");
+      console.error("Test name column is not found");
+      logToConsole("Test name column is not found");
       return;
     }
-
     let productColIndex = headers.indexOf(productName);
     if (productColIndex === -1) {
-      console.error("ไม่พบชื่อ product ใน header:", productName);
-      logToConsole("ไม่พบชื่อ product ใน header:", productName);
+      console.error("Can't find:", productName);
+      logToConsole("Can't find:", productName);
       return;
     }
     let stage_count = Allproduct_stage.filter((item) => item.name === productName).length;
@@ -2305,10 +2056,9 @@ async function YN(data, productName, stagename) {
         break;
       }
     }
-
     if (stage_array_index === undefined) {
-      console.error("ไม่พบ stage name ใน column:", stagename);
-      logToConsole("ไม่พบ stage name ใน column:", stagename);
+      console.error("Can't find:", stagename);
+      logToConsole("Can't find:", stagename);
     }
     console.log(
       "productColIndex: %d, stage_count: %d, stageArrayIndex: %d ",
@@ -2326,7 +2076,7 @@ async function YN(data, productName, stagename) {
     const testNameRangeAll = sheet.getRangeByIndexes(2, TestColIndex, allValues.length - 2, 1);
     testNameRangeAll.load("values");
     await context.sync();
-    // สร้าง YNValues โดยแมปจาก test_name -> YN_check
+    // create YNValues by mapping test_name -> YN_check
     const allTestNames = testNameRangeAll.values.map((row) => row[0]);
     logToConsole("allTestNames length : %d", allTestNames.length);
     let YNValues = [];
@@ -2336,8 +2086,8 @@ async function YN(data, productName, stagename) {
         return [match ? match.YN_check : ""];
       });
     } catch (err) {
-      console.error("เกิดปัญหาในช่วงสร้าง YNValues:", err);
-      logToConsole("เกิดปัญหาในช่วงสร้าง YNValues: %s", err.message || err);
+      console.error("Error while processing YNValues:", err);
+      logToConsole("Error while processing YNValues: %s", err.message || err);
     }
     logToConsole("YNcolIndex : %d", productColIndex + stage_array_index);
     let YNRange = sheet.getRangeByIndexes(
@@ -2350,8 +2100,8 @@ async function YN(data, productName, stagename) {
     await context.sync();
 
     if (YNValues.length === 0) {
-      console.warn("ไม่มีข้อมูล Y/N check ที่จะเขียน");
-      logToConsole("ไม่มีข้อมูล Y/N check ที่จะเขียน");
+      console.warn("There's no Y/N check data");
+      logToConsole("There's no Y/N check data");
     } else {
       console.log("YN.length of %s %s is %d", productName, stagename, YNValues.length);
       logToConsole("YN.length of %s %s is %d", productName, stagename, YNValues.length);
@@ -2364,18 +2114,13 @@ async function YN(data, productName, stagename) {
     IsUsedDataRange.load("values");
     await context.sync();
     let IsUsedData = IsUsedDataRange.values;
-
-    // ถ้า IsUsedData ยังไม่มีข้อมูล ให้สร้าง array เปล่าขึ้นมา ไม่งั้นถ้ามันเป็นข้อมูล undefine มันจะ error
+    // If IsUsedData is null then create new empty array to prevent undefine error
     if (!Array.isArray(IsUsedData) || IsUsedData.length === 0) {
       IsUsedData = Array.from({ length: YNRange.values.length }, () => [""]);
     }
-
     for (let i = 0; i < YNRange.values.length; i++) {
       if (YNRange.values[i][0] === "Y") {
         if (IsUsedData[i][0] === "Partial" || IsUsedData[i][0] === "No") {
-          IsUsedData[i][0] = "Partial";
-        }
-        if (IsUsedData[i][0] === "No") {
           IsUsedData[i][0] = "Partial";
         } else if (IsUsedData[i][0] === "") {
           IsUsedData[i][0] = "All";
@@ -2420,7 +2165,7 @@ async function YN(data, productName, stagename) {
         text: word,
       };
     }
-    
+
     await context.sync();
     document.body.style.cursor = "default";
   });
