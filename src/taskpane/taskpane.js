@@ -2,7 +2,7 @@ Office.onReady((info) => {
   if (info.host === Office.HostType.Excel) {
     document.getElementById("sideload-msg").style.display = "none";
     document.getElementById("app-body").style.display = "flex";
-    document.getElementById("run").onclick = run;
+    document.getElementById("convertBtn").onclick = convertSTDF;
     //There is a button to create it manually because in case user want to re-create the Masterfile without importing new file
     document.getElementById("importFolderBtn").addEventListener("click", async () => {
       const files = document.getElementById("folderInput").files;
@@ -46,92 +46,26 @@ Office.onReady((info) => {
   }
 });
 //convert stdf => xlsx
-export async function run() {
+export async function convertSTDF() {
   try {
     document.body.style.cursor = "wait";
-    await Excel.run(async (context) => {
-      const sheets = context.workbook.worksheets;
-      sheets.load("items/name");
-      await context.sync();
-      const baseName = "Masterfile";
-      let sheetName = baseName;
-      const existingNames = sheets.items.map((s) => s.name);
-      // check all sheets name
-      if (existingNames.includes(sheetName)) {
-        //I'll be back!!!!
-      } else {
-        const newSheet = sheets.add(sheetName);
-        const headers = ["Suite name", "Test name", "Test number", "Lsl_typ", "Usl_typ", "Units"];
-        const headerRange = newSheet.getRangeByIndexes(0, 0, 1, headers.length); //determine the range of cells to input headers , index เริ่มนับที่ 0
-        headerRange.values = [headers]; //input headers into cells
-        headerRange.format.fill.color = "#43a0ec"; // Background of headers
-        headerRange.format.font.bold = true;
-        const sheet = context.workbook.worksheets.getItem("Masterfile");
-        sheet.position = 0;
-        sheet.activate();
-      }
-      await context.sync();
-      document.body.style.cursor = "default";
-    });
-  } catch (error) {
-    console.error("Error:", error);
-    logToConsole("Error");
-  }
-}
-
-//For importing datalog files
-async function importFile() {
-  document.body.style.cursor = "wait";
-  const fileInput = document.getElementById("fileInput");
-  const files = fileInput.files;
-  const fileArray = Array.from(files);
-  if (!files || files.length === 0) return;
-  console.log("Amount of  file: %d", fileArray.length);
-  logToConsole("Amount of  file: %d", fileArray.length);
-  let file_processed = 0;
-  for (const file of fileArray) {
-    const isCSV = file.name.toLowerCase().endsWith(".csv");
-    const isXLSX = file.name.toLowerCase().endsWith(".xlsx");
-    const isSTDF = file.name.toLowerCase().endsWith(".stdf");
-    try {
-      if (isCSV || isXLSX) {
-        console.log("file CSV or XLSX is processing");
-        logToConsole("file CSV or XLSX is processing");
-        //seperate converted datalog and limit files
-
-        const reader = new FileReader();
-        reader.onload = async function (e) {
-          const data = new Uint8Array(e.target.result);
-          const workbook = XLSX.read(data, { type: "array" });
-          const sheetCount = workbook.SheetNames.length;
-          if (sheetCount > 1) {
-            file_processed = await uploadSelfConvertedDatalog(file, file_processed);
-            logToConsole("Processed file = %d", file_processed);
-          } else {
-            logToConsole("EY datalog is importing");
-            file_processed = await uploadEYdatalog(file, file_processed);
-            logToConsole("Processed file = %d", file_processed);
-          }
-        };
-        reader.readAsArrayBuffer(file);
-        // display file name and path
-        const importedList = document.getElementById("importedFilesList");
-        if (importedList) {
-          const listItem = document.createElement("li");
-          listItem.textContent = `${file.name} - ${file.webkitRelativePath || file.name}`;
-          importedList.appendChild(listItem);
-        }
-      } else if (isSTDF) {
-        console.log("File is STDF");
-        logToConsole("File is STDF");
+    const fileInput = document.getElementById("stdfInput");
+    const files = fileInput.files;
+    const fileArray = Array.from(files);
+    if (!files || files.length === 0) return;
+    console.log("File Amount : %d", fileArray.length);
+    logToConsole("File Amount : %d", fileArray.length);
+    for (const file of fileArray) {
+      const isSTDF = file.name.toLowerCase().endsWith(".stdf");
+      if (isSTDF) {
         const formData = new FormData();
         if (!file) {
           console.warn("No file");
           return;
         }
         formData.append("files", file);
-        console.log(`Processing: ${file.name}`);
-        logToConsole(`Processing: ${file.name}`);
+        console.log(`Processing : ${file.name}`);
+        logToConsole(`Processing : ${file.name}`);
         document.body.style.cursor = "wait";
         const response = await fetch("https://limit-project-demo.onrender.com/upload-stdf/", {
           method: "POST",
@@ -157,8 +91,62 @@ async function importFile() {
         a.click();
         a.remove();
         window.URL.revokeObjectURL(downloadUrl);
-        logToConsole("STDF converted and downloaded successfully");
+        logToConsole("Successfully converted and downloaded STDF");
       } else {
+        console.warn(`Doesn't support ${file.name}`);
+        logToConsole(`Doesn't support ${file.name}`);
+      }
+    }
+  } catch (error) {
+    console.error(`Error while processing file: ${file.name}`, err);
+    logToConsole(`Error while processing file: ${file.name}`);
+  } finally {
+    document.body.style.cursor = "default";
+  }
+}
+
+//For importing datalog files
+async function importFile() {
+  document.body.style.cursor = "wait";
+  const fileInput = document.getElementById("fileInput");
+  const files = fileInput.files;
+  const fileArray = Array.from(files);
+  if (!files || files.length === 0) return;
+  console.log("File Amount : %d", fileArray.length);
+  logToConsole("File Amount : %d", fileArray.length);
+  let file_processed = 0;
+  for (const file of fileArray) {
+    const isCSV = file.name.toLowerCase().endsWith(".csv");
+    const isXLSX = file.name.toLowerCase().endsWith(".xlsx");
+    try {
+      if (isCSV || isXLSX) {
+        console.log(`Processing : ${file.name}`);
+        logToConsole(`Processing : ${file.name}`);
+        //seperate converted datalog and limit files
+
+        const reader = new FileReader();
+        reader.onload = async function (e) {
+          const data = new Uint8Array(e.target.result);
+          const workbook = XLSX.read(data, { type: "array" });
+          const sheetCount = workbook.SheetNames.length;
+          if (sheetCount > 1) {
+            file_processed = await uploadSelfConvertedDatalog(file, file_processed);
+            logToConsole("Processed file = %d", file_processed);
+          } else {
+            logToConsole("EY datalog is importing");
+            file_processed = await uploadEYdatalog(file, file_processed);
+            logToConsole("Processed file = %d", file_processed);
+          }
+        };
+        reader.readAsArrayBuffer(file);
+        // display file name and path
+        const importedList = document.getElementById("importedFilesList");
+        if (importedList) {
+          const listItem = document.createElement("li");
+          listItem.textContent = `${file.name} - ${file.webkitRelativePath || file.name}`;
+          importedList.appendChild(listItem);
+        }
+      } else { 
         console.warn(`Doesn't support ${file.name}`);
         logToConsole(`Doesn't support ${file.name}`);
       }
@@ -205,8 +193,6 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
     reader.onload = function (e) {
       const formData = new FormData();
       formData.append("file", file);
-      console.log(`Uploading Excel Datalog to API: ${file.name}`);
-      logToConsole(`Uploading Excel Datalog to API: ${file.name}`);
       const data = new Uint8Array(e.target.result);
       const workbook = XLSX.read(data, { type: "array" });
       const mirSheet = workbook.Sheets["mir"];
@@ -237,7 +223,6 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
         let stagename = mirData[0]?.["TEST_COD"]?.trim();
         let productColIndex = headers.indexOf(productName);
         console.log("productColINdex before add product name or stage: %d", productColIndex);
-        logToConsole("productColINdex before add product name or stage: %d", productColIndex);
         let Allproduct_stage = [];
         let StartStageCol;
         let EndStageCol;
@@ -280,12 +265,12 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
           product_name_head.values = [[productName]];
           let Canremove_index = headers.indexOf("Can remove (Y/N)");
           if (Canremove_index < 0) {
-            logToConsole("Can't find Can remove col");
+            logToConsole("Can't find 'Can remove' col");
             return;
           }
           let Lsl_typ_index = headers.indexOf("Lsl_typ");
           if (Lsl_typ_index < 0) {
-            logToConsole("Can't find Lsl_typ col");
+            logToConsole("Can't find 'Lsl_typ' col");
             return;
           }
           let Product_count = 0;
@@ -323,7 +308,6 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
           const stageCell = sheet.getCell(1, startCol + stage_count);
           stageCell.values = [[stagename]];
           console.log("startcol for merge: %d stagecount for merge: %d", startCol, stage_count);
-          logToConsole("startcol for merge: %d stagecount for merge: %d", startCol, stage_count);
           const range = sheet.getRangeByIndexes(0, startCol, 1, stage_count);
           range.values = Array(1).fill(Array(stage_count).fill(productName));
           // fill productName in every cells of range Array(stage_count).fill(productName)
@@ -344,7 +328,7 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
           .then((data) => {
             let TestData = data.test_data;
             if (TestData !== null) {
-              logToConsole("process-datalog-excel fetched successfully");
+              logToConsole("Successfully fetched process-datalog-excel");
             }
             Excel.run(async (context) => {
               const sheet = context.workbook.worksheets.getItem("Masterfile");
@@ -393,18 +377,15 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
               );
               testNameRange.load("values");
               await context.sync();
-              logToConsole("Determined Allcolindex and testNamerange");
               let existingTestNames = [];
               try {
                 existingTestNames = testNameRange.values.flat().filter((v) => v !== "");
               } catch (err) {
                 console.error("Error while processing testNameRange.values:", err);
-                logToConsole("Error while processing testNameRange.values: %s", err.message || err);
                 return;
               }
               if (!Array.isArray(TestData)) {
                 console.error("TestData isn't an array or isn't downloaded");
-                logToConsole("TestData isn't an array or isn't downloaded");
                 return;
               }
               let newTests = [];
@@ -412,12 +393,10 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
                 newTests = TestData.filter((item) => !existingTestNames.includes(item.test_name));
               } catch (err) {
                 console.error("Error while TestData.filter", err);
-                logToConsole("Error while TestData.filter: %s", err.message || err);
                 return;
               }
               if (!Array.isArray(allValues)) {
                 console.error("allValues isn't an array");
-                logToConsole("allValues isn't an array");
                 return;
               }
               let startRow = allValues.length;
@@ -449,7 +428,7 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
                   testRange.values = testValues;
                   await context.sync();
                 } else {
-                  logToConsole("There's no new tests");
+                  logToConsole("There's no new test");
                 }
               } catch (err) {
                 console.error("Error while processing newTests:", err);
@@ -462,8 +441,8 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
               const productName = mirData[0]?.["JOB_NAM"]?.trim();
               let productColIndex = headers.indexOf(productName);
               if (productColIndex === -1) {
-                console.error("Can't find product name :", productName);
-                logToConsole("Can't find product name :", productName);
+                console.error("Can't find product name column:", productName);
+                logToConsole("Can't find product name column:", productName);
                 return;
               }
               Allproduct_stage.push({
@@ -485,7 +464,7 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
 
               if (stage_array_index === undefined) {
                 console.error("Can't find stage name index :", stagename);
-                logToConsole("Can't find stage name index:", stagename);
+                logToConsole("Can't find stage name index :", stagename);
               }
               console.log(
                 "productColIndex: %d, stage_count: %d, stageArrayIndex: %d ",
@@ -541,7 +520,6 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
                 logToConsole("No Y/N check data");
               } else {
                 console.log("YN.length of %s %s is %d", productName, stagename, YNValues.length);
-                logToConsole("YN.length of %s %s is %d", productName, stagename, YNValues.length);
               }
               YNRange.values = YNValues;
               await context.sync();
@@ -603,8 +581,8 @@ async function uploadSelfConvertedDatalog(file, file_processed) {
                 };
               }
               await context.sync();
-              console.log("Finished processing one file");
-              logToConsole("Finished processing one file");
+              console.log("Finished processing a file");
+              logToConsole("Finished processing a file");
               file_processed++;
               resolve(file_processed);
               document.body.style.cursor = "default";
@@ -623,8 +601,6 @@ async function uploadEYdatalog(file, file_processed) {
     reader.onload = async function (e) {
       const formData = new FormData();
       formData.append("file", file);
-      console.log(`Uploading Excel Datalog to API: ${file.name}`);
-      logToConsole(`Uploading Excel Datalog to API: ${file.name}`);
       const data = new Uint8Array(e.target.result);
       const response = await fetch("https://limit-project-demo.onrender.com/process-EY/", {
         method: "POST",
@@ -691,7 +667,7 @@ async function uploadEYdatalog(file, file_processed) {
         }
       }
 
-      logToConsole("Import EY file successfully");
+      logToConsole("Imported EY file successfully");
       file_processed++;
       resolve(file_processed);
     };
@@ -718,7 +694,7 @@ async function importFolder(formData) {
       logToConsole("Upload failed");
       return;
     }
-    logToConsole("Import Folder fetched successfully");
+    logToConsole("Imported Folder fetched successfully");
     const result = await response.json();
     const mfhFiles = result.mfh_files || [];
     //display .mfh name list in UI
@@ -749,8 +725,8 @@ async function importFolder(formData) {
     let masterSheet;
     existingNames = sheets.items.map((s) => s.name);
     if (!existingNames.includes(sheetName)) {
-      console.log("There is no Masterfile yet...Creating Masterfile");
-      logToConsole("There is no Masterfile yet...Creating Masterfile");
+      console.log("Creating Masterfile...");
+      logToConsole("Creating Masterfile...");
       const sheets = context.workbook.worksheets;
       sheets.load("items/name");
       await context.sync();
@@ -853,7 +829,6 @@ async function importFolder(formData) {
                   if (fileheader === "Lsl" || fileheader === "Usl") {
                     samestage = all_limit_stage.find((item) => item.stage === stageheader);
                     if (samestage === undefined || samestage === "") {
-                      logToConsole("new stage is %s", stageheader);
                       all_limit_stage.push({
                         name: fileheader,
                         stage: stageheader,
@@ -865,7 +840,7 @@ async function importFolder(formData) {
                         2
                       );
                       newstageColRange.insert(Excel.InsertShiftDirection.right);
-                      logToConsole("Insert new col");
+                      logToConsole("Insert new column");
                       await context.sync();
                       usedRange.load(["rowCount", "columnCount"]);
                       await context.sync();
@@ -1210,7 +1185,6 @@ async function importFolder(formData) {
             logToConsole("Can't find Spec column!");
             return;
           }
-          logToConsole("Spec index is %d", SpecIndex);
           let arrange_range = masterSheet.getRangeByIndexes(
             1,
             SpecIndex + 2,
@@ -1349,11 +1323,9 @@ async function importFolder(formData) {
           let values = allValues;
           let rowCount = usedRange.rowCount;
           let columnCount = usedRange.columnCount;
-          logToConsole("rowCount : %d columnCount : %d", rowCount, columnCount);
           let LLspecIndex = stages.indexOf("Spec");
           const All_LL_specIndex = headers.indexOf("All LL ? Spec");
           const All_UL_specIndex = headers.indexOf("All UL ? Spec");
-          logToConsole("LLspecIndex : %d", LLspecIndex);
           let ULlastIndex = LLspecIndex + arranged_stages.length + 2;
           let limit = [];
           for (let r = 2; r < values.length; r++) {
@@ -1367,7 +1339,6 @@ async function importFolder(formData) {
           let All_LL_spec = [];
           let All_UL_spec = [];
           let ALL_compare_result = [];
-          logToConsole("Limit length : %d", limit.length);
           for (let i = 0; i < limit.length; i++) {
             const row = limit[i];
             const specLL = row[0];
@@ -1422,8 +1393,6 @@ async function importFolder(formData) {
             ALL_compare_result[0].length
           ).values = ALL_compare_result;
           await context.sync();
-          logToConsole("All_LL_spec length : %d", All_LL_spec.length);
-          logToConsole("All_UL_spec length : %d", All_UL_spec.length);
           let All_LL_specRange = masterSheet.getRangeByIndexes(
             2,
             All_LL_specIndex,
@@ -1445,7 +1414,7 @@ async function importFolder(formData) {
           masterSheet.getCell(0, 3).values = "Is used (Y/N)";
           masterSheet.getCell(0, 4).values = "Can remove (Y/N)";
           await context.sync();
-          logToConsole("Limit Compare Successed");
+          logToConsole("Limit Compare Successfully");
           //In/Out-spec conditional formatting
           const IN_OUTkeywords = ["Out-spec", "In-spec"];
           const colors = ["#ff9c9c", "#C6EFCE"];
@@ -1498,14 +1467,12 @@ async function importFolder(formData) {
           let stages = allValues[1];
           await context.sync();
           let Bin_s_index = headers.indexOf("Bin_s_num");
-          logToConsole("Bin s index: %d", Bin_s_index);
           masterSheet
             .getRangeByIndexes(0, Bin_s_index, usedRange.rowCount, Allpair.length)
             .insert(Excel.InsertShiftDirection.right);
           masterSheet.getRangeByIndexes(0, Bin_s_index, 1, Allpair.length).values = [Allpair];
           await context.sync();
           let LLspecIndex = stages.indexOf("Spec");
-          logToConsole("LLspecIndex : %d", LLspecIndex);
           let ULlastIndex = LLspecIndex + arranged_stages.length + 2;
           let limit = [];
           for (let r = 2; r < allValues.length; r++) {
@@ -1568,7 +1535,6 @@ async function importFolder(formData) {
           let lastSpecLimit_index = headers.indexOf(limit_compare[limit_compare.length - 1]);
           console.log(lastSpecLimit_index);
           if (lastSpecLimit_index < 0) {
-            logToConsole("Can't find last spec vs limit col");
             return;
           }
           masterSheet.getRangeByIndexes(
@@ -1693,7 +1659,7 @@ async function checkboxHide(UncheckedNames, checkedNames) {
       console.log(LLpair_header);
       LLpairIndex = headers.indexOf(LLpair_header);
       if (LLpairIndex === -1) {
-        logToConsole("can't find an index to hide");
+        logToConsole("Can't find an index");
         return;
       }
       logToConsole("Hiding : %s ? %s", first.toUpperCase(), last.toUpperCase());
@@ -1722,7 +1688,7 @@ async function checkboxHide(UncheckedNames, checkedNames) {
       LLpair_header = "LL " + first.toUpperCase() + " ? " + last.toUpperCase();
       LLpairIndex = headers.indexOf(LLpair_header);
       if (LLpairIndex === -1) {
-        logToConsole("can't find an index to hide");
+        logToConsole("Can't find an index");
         return;
       }
       try {
@@ -1777,7 +1743,6 @@ async function Check_product_stage(productName, stagename) {
     //Insert Product as a Product Name
     let productColIndex = headers.indexOf(productName);
     console.log("productColINdex before add product name or stage: %d", productColIndex);
-    logToConsole("productColINdex before add product name or stage: %d", productColIndex);
     let Allproduct_stage = [];
     let StartStageCol;
     let EndStageCol;
@@ -1822,12 +1787,12 @@ async function Check_product_stage(productName, stagename) {
       product_name_head.values = [[productName]];
       let Canremove_index = headers.indexOf("Can remove (Y/N)");
       if (Canremove_index < 0) {
-        logToConsole("Can't find Can remove col");
+        logToConsole("Can't find 'Can remove' column");
         return;
       }
       let Lsl_typ_index = headers.indexOf("Lsl_typ");
       if (Lsl_typ_index < 0) {
-        logToConsole("Can't find Lsl_typ col");
+        logToConsole("Can't find 'Lsl_typ' column");
         return;
       }
       let Product_count = 0;
@@ -1851,7 +1816,6 @@ async function Check_product_stage(productName, stagename) {
       const startCol = productColIndex;
       const stage_count = Allproduct_stage.filter((item) => item.name === productName).length; //how many stages does this product have
       console.log("product :  %s , stage count : %d", productName, stage_count);
-      logToConsole("product : %s , stage count : %d", productName, stage_count);
       let columnToInsert = sheet.getRangeByIndexes(0, startCol + 1, 1, 1);
       columnToInsert.insert(Excel.InsertShiftDirection.right);
       usedRange = sheet.getUsedRange();
@@ -1865,7 +1829,6 @@ async function Check_product_stage(productName, stagename) {
       const stageCell = sheet.getCell(1, startCol + stage_count);
       stageCell.values = [[stagename]];
       console.log("startcol for merge: %d stagecount for merge: %d", startCol, stage_count);
-      logToConsole("startcol for merge: %d stagecount for merge: %d", startCol, stage_count);
       const range = sheet.getRangeByIndexes(0, startCol, 1, stage_count);
       range.values = Array(1).fill(Array(stage_count).fill(productName)); // ใส่ค่า productName ลงในทุกเซลล์ของ range Array(stage_count).fill(productName) สร้างอาร์เรย์ย่อยที่มี productName ซ้ำกัน stage_count ครั้ง เช่น ["ABC", "ABC", "ABC"] Array(1).fill(...) ทำให้กลายเป็น array 2 มิติ (1 แถว n คอลัมน์) → ซึ่งตรงกับ .values ที่ต้องการ
       range.merge();
@@ -1916,7 +1879,6 @@ async function WriteNewtest(data) {
     const testNameRange = sheet.getRangeByIndexes(2, TestColIndex, allValues.length - 2, 1);
     testNameRange.load("values");
     await context.sync();
-    logToConsole("Determined Allcolindex and testNamerange");
     let existingTestNames = [];
     try {
       existingTestNames = testNameRange.values.flat().filter((v) => v !== "");
@@ -1946,7 +1908,6 @@ async function WriteNewtest(data) {
     let testValues = [];
     if (newTests.length > 0) {
       const testNumbers = newTests.map((t) => [t?.test_number ?? ""]);
-      logToConsole("newTests.length = %d", newTests.length);
       if (TestnumColIndex === -1) {
         logToConsole("Can't find Test number column");
         return;
@@ -1962,7 +1923,7 @@ async function WriteNewtest(data) {
       testRange.values = testValues;
       await context.sync();
     } else {
-      logToConsole("There's no new tests");
+      logToConsole("There's no new test");
     }
     document.body.style.cursor = "default";
   });
@@ -2040,8 +2001,8 @@ async function YN(data, productName, stagename) {
     }
     let productColIndex = headers.indexOf(productName);
     if (productColIndex === -1) {
-      console.error("Can't find:", productName);
-      logToConsole("Can't find:", productName);
+      console.error("Can't find %s column", productName);
+      logToConsole("Can't find %s column", productName);
       return;
     }
     let stage_count = Allproduct_stage.filter((item) => item.name === productName).length;
@@ -2066,19 +2027,12 @@ async function YN(data, productName, stagename) {
       stage_count,
       stage_array_index
     );
-    logToConsole(
-      "productColIndex: %d, stage_count: %d, stageArrayIndex: %d ",
-      productColIndex,
-      stage_count,
-      stage_array_index
-    );
 
     const testNameRangeAll = sheet.getRangeByIndexes(2, TestColIndex, allValues.length - 2, 1);
     testNameRangeAll.load("values");
     await context.sync();
     // create YNValues by mapping test_name -> YN_check
     const allTestNames = testNameRangeAll.values.map((row) => row[0]);
-    logToConsole("allTestNames length : %d", allTestNames.length);
     let YNValues = [];
     try {
       YNValues = allTestNames.map((testName) => {
@@ -2089,7 +2043,6 @@ async function YN(data, productName, stagename) {
       console.error("Error while processing YNValues:", err);
       logToConsole("Error while processing YNValues: %s", err.message || err);
     }
-    logToConsole("YNcolIndex : %d", productColIndex + stage_array_index);
     let YNRange = sheet.getRangeByIndexes(
       2,
       productColIndex + stage_array_index,
@@ -2104,7 +2057,6 @@ async function YN(data, productName, stagename) {
       logToConsole("There's no Y/N check data");
     } else {
       console.log("YN.length of %s %s is %d", productName, stagename, YNValues.length);
-      logToConsole("YN.length of %s %s is %d", productName, stagename, YNValues.length);
     }
     YNRange.values = YNValues;
     await context.sync();

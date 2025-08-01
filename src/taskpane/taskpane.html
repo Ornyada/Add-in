@@ -129,9 +129,32 @@
     <!-- Run button -->
     <div class="feature-box">
       <div class="feature-row">
-        <p class="ms-font-l">Create the Masterfile! click...Run</p>
-        <div role="button" id="run" class="ms-welcome__action ms-Button ms-Button--hero ms-font-xl">
-          <span class="ms-Button-label"><b>RUN</b></span>
+        <p class="ms-font-l">CONVERT STDF => XLSX</p>
+        <div class="file-upload-container">
+          <label for="stdfInput" class="custom-file-upload" id="stdfSelect">+</label>
+          <input type="file" id="stdfInput" multiple style="display: none;" />
+          <span id="stdfInfo" class="file-info" title=""></span>
+          <script>
+            const stdfInput = document.getElementById('stdfInput');
+            const stdfInfo = document.getElementById('stdfInfo');
+
+            stdfInput.addEventListener('change', () => {
+              const files = Array.from(stdfInput.files);
+              if (files.length === 1) {
+                stdfInfo.textContent = files[0].name;
+                stdfInfo.title = files[0].name;
+              } else if (files.length > 1) {
+                stdfInfo.textContent = `${files.length} files selected`;
+                stdfInfo.title = files.map(file => file.name).join('\n');
+              } else {
+                stdfInfo.textContent = '';
+                stdfInfo.title = '';
+              }
+            });
+          </script>
+          <div role="button" id="convertBtn" class="ms-welcome__action ms-Button ms-Button--hero ms-font-xl">
+            <span class="ms-Button-label"><b>CONVERT</b></span>
+          </div>
         </div>
       </div>
     </div>
