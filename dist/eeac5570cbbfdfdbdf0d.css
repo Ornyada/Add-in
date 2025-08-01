@@ -501,7 +501,6 @@ ul {
 
 .feature-box:hover {
   transform: translateY(-3px);
-  /* ขยับขึ้นเล็กน้อย */
   transition: transform 0.2s ease, box-shadow 0.2s ease
 }
 
