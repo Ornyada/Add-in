@@ -109,6 +109,7 @@ ul {
 
 .mfh-list h3 {
   color: #191921;
+  font-size: 16px;
 }
 
 .mfh-list li:hover {
@@ -144,7 +145,7 @@ ul {
   display: inline-block;
   vertical-align: middle;
   text-align: left;
-
+  font-size: 16px;
 }
 
 /* === Welcome Section === */
@@ -194,21 +195,21 @@ ul {
   align-items: flex-end;
 }
 
+.ms-Button.ms-Button--hero:hover .ms-Button-label,
+.ms-Button.ms-Button--hero:focus .ms-Button-label {
+  cursor: pointer;
+  box-shadow: 0 0 20px #ffffff;
+}
+
 .ms-Button.ms-Button--hero .ms-Button-label {
   color: #191921;
   background-color: #ffffff;
   border-radius: 30px;
   align-items: flex-end;
   text-shadow: 0 0 5px #ffffff;
-  font-size: 18px;
+  font-size: 16px;
   padding: 10px 10px;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-
-.ms-Button.ms-Button--hero:hover .ms-Button-label,
-.ms-Button.ms-Button--hero:focus .ms-Button-label {
-  cursor: pointer;
-  box-shadow: 0 0 20px #ffffff;
 }
 
 .API-pane {
@@ -266,7 +267,7 @@ ul {
   color: #191921;
   text-shadow: 0 0 5px var(--accent-color);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
-  transition: all 0.3s ease-in-out;
+
   align-self: center;
   margin: 10px 0;
 
@@ -280,10 +281,21 @@ ul {
   cursor: pointer;
   width: auto;
   border-radius: 20px;
-  color: #e42e2e;
+  color: #191921;
   text-shadow: 0 0 5px var(--accent-color);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.9);
-  transition: all 0.3s ease-in-out;
+  align-self: center;
+  margin: 10px 0;
+}
+
+.compare-button:active {
+  text-align: center;
+  cursor: pointer;
+  width: auto;
+  color: #191921;
+  background-color: #e6e6e6;
+  text-shadow: 0 0 5px var(--accent-color);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.9);
   align-self: center;
   margin: 10px 0;
 }
@@ -311,7 +323,6 @@ ul {
   font-weight: bold;
   text-shadow: 0 0 5px #ffffff;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s ease-in-out;
 }
 
 #importDatalogBtn:hover,
@@ -320,8 +331,21 @@ ul {
 #importFolderBtn:focus {
   background-color: #ffffff;
   color: #191921;
-  box-shadow: 0 0 20px #ffffff;
+  box-shadow: 0 0 10px #ffffff;
   cursor: pointer;
+}
+
+#importDatalogBtn:active,
+#importFolderBtn:active {
+  text-align: center;
+  cursor: pointer;
+  width: auto;
+  color: #191921;
+  background-color: #e6e6e6;
+  text-shadow: 0 0 5px var(--accent-color);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.9);
+  align-self: center;
+  margin: 10px 0;
 }
 
 .custom-file-upload,
@@ -337,7 +361,6 @@ ul {
   font-weight: bold;
   text-shadow: 0 0 5px #ffffff;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
-  transition: all 0.3s ease-in-out;
 
 }
 
@@ -354,9 +377,24 @@ ul {
 }
 
 .custom-file-upload:hover,
-.custom-folder-upload:hover,
+.custom-folder-upload:hover {
+  background-color: #ffffff;
+  color: #191921;
+  box-shadow: 0 0 10px #ffffff;
+  cursor: pointer;
+}
+
+.custom-file-upload:active,
+.custom-file-upload:focus,
+.custom-folder-upload:active,
 .custom-folder-upload:focus {
-  box-shadow: 0 0 20px #ffffff;
+  text-align: center;
+  cursor: pointer;
+  color: #191921;
+  background-color: #e6e6e6;
+  text-shadow: 0 0 5px var(--accent-color);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.9);
+  align-self: center;
 }
 
 /* === Console Output === */
@@ -433,7 +471,6 @@ ul {
 }
 
 .feature-box {
-
   background: var(--glass-bg);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
