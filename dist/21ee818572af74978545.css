@@ -448,7 +448,6 @@ ul {
   z-index: 2;
   box-sizing: border-box;
   margin-bottom: 0;
-  /* ✅ ลบ margin ด้านบน */
   border-top-left-radius: 20px;
   border-top-right-radius: 20px;
 
@@ -486,7 +485,6 @@ ul {
 
 .feature-box:hover {
   transform: translateY(-3px);
-  /* ขยับขึ้นเล็กน้อย */
   transition: transform 0.2s ease, box-shadow 0.2s ease
 }
 
